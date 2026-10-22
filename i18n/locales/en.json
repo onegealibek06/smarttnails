@@ -4,6 +4,7 @@
     "description": "Nail artist Ardak: natural manicure, gel polish, French tips, extensions and pedicure in Astana. Rated 5.0 on 2GIS. Book online in a minute."
   },
   "nav": {
+    "home": "Home",
     "works": "Works",
     "services": "Services",
     "booking": "Booking",
@@ -15,7 +16,8 @@
     "book": "Book now",
     "bookOnline": "Book online",
     "seeWorks": "See my work",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "whatsappFloat": "Chat with us on WhatsApp"
   },
   "preloader": {
     "tagline": "by Ardak Aldanazarova"
@@ -28,18 +30,13 @@
     "language": "Site language"
   },
   "hero": {
-    "badge": "Now taking clients at: {place}",
-    "title1": "Nails you'll",
-    "titleAccent": "love",
-    "title2": "to show off",
-    "subtitle": "Natural results, flawless cuticles and zero pain. Nail artist Ardak, Smarttnails studio in Astana.",
-    "ratingLabel": "rating on 2GIS",
-    "hoursLabel": "every day",
-    "servicesLabel": "services",
-    "nearest": "Next available time",
-    "today": "today",
-    "tomorrow": "tomorrow",
-    "noFree": "See free times in booking"
+    "eyebrow": "Nail studio in Astana",
+    "line1": "Nails you'll",
+    "line2": "never stop",
+    "line3": "admiring",
+    "subtitle": "Natural results, flawless cuticles and zero pain.",
+    "seeWorks": "See my work",
+    "slide": "Photo {n} of {total}"
   },
   "why": {
     "eyebrow": "Why me",

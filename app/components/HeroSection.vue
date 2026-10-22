@@ -1,144 +1,197 @@
 <script setup lang="ts">
-import { heroImages, salon, services } from '~/data/salon'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { salon } from '~/data/salon'
 
 const { t } = useI18n()
-const { lang } = useLang()
 const preloaderDone = useState('preloader:done', () => false)
-const { nearestSlot, load } = useBooking()
 
-const today = toISODate(new Date())
-const place = computed(() => locationFor(today).street[lang.value])
-
-const nearest = ref<ReturnType<typeof nearestSlot>>(null)
-const nearestLabel = computed(() => {
-  if (!nearest.value) return t('hero.noFree')
-  const day = nearest.value.offset === 0
-    ? t('hero.today')
-    : nearest.value.offset === 1
-      ? t('hero.tomorrow')
-      : formatDay(nearest.value.date, lang.value, { weekday: 'long' })
-  return `${day}, ${formatTime(nearest.value.start)}`
-})
+// Три фото сменяют друг друга с плавным наплывом; в активном — медленный «наезд камеры»
+const slides = ['/hero/slide-1.webp', '/hero/slide-2.webp', '/hero/slide-3.webp']
+const SLIDE_MS = 5500
+const current = ref(0)
 
 const root = ref<HTMLElement>()
+// armed — элементы спрятаны и ждут вступительной анимации. Без JavaScript всё просто видно.
+const armed = ref(false)
 
-async function playIntro() {
-  if (!root.value || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  const { gsap } = await import('gsap')
-  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-  tl.from(root.value.querySelectorAll('[data-hero]'), { y: 40, opacity: 0, duration: 1, stagger: 0.08 })
-    .from(root.value.querySelector('[data-hero-photo]'), { clipPath: 'inset(100% 0 0 0 round 999px 999px 28px 28px)', duration: 1.3 }, 0.1)
-    .from(root.value.querySelectorAll('[data-hero-float]'), { scale: 0.8, opacity: 0, duration: 0.8, stagger: 0.12 }, 0.6)
+const sparkles = [
+  { x: 24, y: 30, s: 16, d: 0 },
+  { x: 62, y: 16, s: 11, d: 0.8 },
+  { x: 78, y: 52, s: 18, d: 1.6 },
+  { x: 42, y: 68, s: 10, d: 0.4 },
+  { x: 88, y: 24, s: 12, d: 2.2 },
+  { x: 54, y: 40, s: 9, d: 1.2 },
+]
+
+let timer: ReturnType<typeof setInterval> | undefined
+let ctx: gsap.Context | undefined
+
+function goTo(i: number) {
+  current.value = i
+  restartTimer()
+}
+
+function restartTimer() {
+  clearInterval(timer)
+  timer = setInterval(() => {
+    if (!document.hidden) current.value = (current.value + 1) % slides.length
+  }, SLIDE_MS)
+}
+
+function intro() {
+  const el = root.value
+  if (!el) return
+  ctx = gsap.context(() => {
+    gsap.timeline({ defaults: { ease: 'power4.out' } })
+      .fromTo('[data-media]', { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'power4.inOut' }, 0)
+      .fromTo('[data-media-inner]', { scale: 1.25 }, { scale: 1, duration: 2.1, ease: 'power3.out' }, 0)
+      // y: 0 обязательно: иначе GSAP возьмёт сдвиг из CSS (translateY 115%) в пикселях, и строки останутся внизу
+      .fromTo('.line-inner', { yPercent: 115, y: 0 }, { yPercent: 0, y: 0, duration: 1.15, stagger: 0.12 }, 0.35)
+      .fromTo('[data-fade]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, stagger: 0.08 }, 0.75)
+      .fromTo('.sparkle-wrap', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(2.5)' }, 1.3)
+  }, el)
+}
+
+function setupMotion() {
+  const el = root.value
+  if (!el) return
+  gsap.registerPlugin(ScrollTrigger)
+  ctx?.add(() => {
+    // При прокрутке фото уезжает медленнее текста — глубина
+    gsap.to('[data-media]', { yPercent: 10, ease: 'none', scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: true } })
+    gsap.to('[data-content]', { y: -60, opacity: 0.25, ease: 'none', scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: true } })
+  })
+
+  // Фото и розовое свечение чуть следуют за мышкой (только на компьютере)
+  if (!window.matchMedia('(pointer: fine)').matches) return
+  const parallax = el.querySelector('[data-parallax]')
+  const glow = el.querySelector('[data-glow]')
+  const px = gsap.quickTo(parallax, 'x', { duration: 1.2, ease: 'power3' })
+  const py = gsap.quickTo(parallax, 'y', { duration: 1.2, ease: 'power3' })
+  const gx = gsap.quickTo(glow, 'x', { duration: 1.8, ease: 'power3' })
+  const gy = gsap.quickTo(glow, 'y', { duration: 1.8, ease: 'power3' })
+  const onMove = (e: PointerEvent) => {
+    const nx = e.clientX / window.innerWidth - 0.5
+    const ny = e.clientY / window.innerHeight - 0.5
+    px(nx * -18)
+    py(ny * -12)
+    gx(nx * 60)
+    gy(ny * 40)
+  }
+  el.addEventListener('pointermove', onMove)
+  ctx?.add(() => () => el.removeEventListener('pointermove', onMove))
 }
 
 onMounted(() => {
-  load()
-  nearest.value = nearestSlot(90)
-  if (preloaderDone.value) playIntro()
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (reduced) return
+  armed.value = true
+  restartTimer()
+
+  const start = () => {
+    intro()
+    setupMotion()
+  }
+  if (preloaderDone.value) start()
   else {
     const stop = watch(preloaderDone, (done) => {
-      if (done) {
-        playIntro()
-        stop()
-      }
+      if (!done) return
+      stop()
+      start()
     })
   }
+})
+
+onBeforeUnmount(() => {
+  clearInterval(timer)
+  ctx?.revert()
 })
 </script>
 
 <template>
-  <section ref="root" class="relative overflow-hidden pb-16 pt-[calc(96px+env(safe-area-inset-top))] sm:pt-32 lg:pb-24">
-    <div class="pointer-events-none absolute -right-40 top-10 h-[34rem] w-[34rem] rounded-full bg-blush blur-3xl" aria-hidden="true" />
-    <div class="pointer-events-none absolute -left-32 bottom-0 h-80 w-80 rounded-full bg-lilac/70 blur-3xl" aria-hidden="true" />
+  <section id="top" ref="root" class="hero relative flex min-h-[100svh] flex-col overflow-hidden bg-blush lg:block" :class="{ 'hero--armed': armed }">
+    <div data-glow class="pointer-events-none absolute -left-48 top-[38%] h-[36rem] w-[36rem] rounded-full bg-rose/55 blur-[110px]" aria-hidden="true" />
+    <div class="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-lilac/70 blur-[90px]" aria-hidden="true" />
 
-    <div class="relative mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-10">
-      <div>
-        <a
-          data-hero
-          href="#location"
-          class="inline-flex max-w-full items-center gap-2.5 rounded-full border border-ink/8 bg-white/80 py-2 pl-3 pr-4 text-sm font-medium backdrop-blur"
-        >
-          <span class="relative flex h-2.5 w-2.5 shrink-0">
-            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose opacity-70" />
-            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-rose-deep" />
-          </span>
-          <span class="min-w-0 truncate">{{ t('hero.badge', { place }) }}</span>
-        </a>
-
-        <h1 data-hero class="mt-6 text-[clamp(2.7rem,8.4vw,5.6rem)] font-semibold leading-[0.98] tracking-[-0.05em]">
-          {{ t('hero.title1') }}
-          <span class="accent text-[1.12em]">{{ t('hero.titleAccent') }}</span>
-          {{ t('hero.title2') }}
-        </h1>
-
-        <p data-hero class="mt-6 max-w-md text-lg leading-relaxed text-ink-soft">
-          {{ t('hero.subtitle') }}
-        </p>
-
-        <div data-hero class="mt-8 flex flex-col gap-3 sm:flex-row">
-          <a href="#booking" class="btn btn-primary">
-            {{ t('cta.bookOnline') }}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-          </a>
-          <a href="#works" class="btn btn-ghost">{{ t('cta.seeWorks') }}</a>
-        </div>
-
-        <dl data-hero class="mt-10 grid max-w-md grid-cols-3 divide-x divide-ink/10 rounded-3xl border border-ink/8 bg-white/70 py-4 backdrop-blur">
-          <div class="px-4">
-            <dt class="sr-only">{{ t('hero.ratingLabel') }}</dt>
-            <dd class="flex items-center gap-1 text-2xl font-semibold tracking-tight">
-              {{ salon.rating.toFixed(1).replace('.', lang === 'en' ? '.' : ',') }}
-              <svg width="16" height="16" viewBox="0 0 20 20" class="text-rose-deep" aria-hidden="true"><path fill="currentColor" d="m10 1.8 2.5 5.3 5.8.7-4.3 4 1.1 5.7L10 14.7l-5.1 2.8L6 11.8l-4.3-4 5.8-.7z" /></svg>
-            </dd>
-            <dd class="mt-1 text-xs leading-tight text-ink-soft">{{ t('hero.ratingLabel') }}</dd>
-          </div>
-          <div class="px-4">
-            <dt class="sr-only">{{ t('hero.hoursLabel') }}</dt>
-            <dd class="text-2xl font-semibold tracking-tight">9–22</dd>
-            <dd class="mt-1 text-xs leading-tight text-ink-soft">{{ t('hero.hoursLabel') }}</dd>
-          </div>
-          <div class="px-4">
-            <dt class="sr-only">{{ t('hero.servicesLabel') }}</dt>
-            <dd class="text-2xl font-semibold tracking-tight">{{ services.length }}</dd>
-            <dd class="mt-1 text-xs leading-tight text-ink-soft">{{ t('hero.servicesLabel') }}</dd>
-          </div>
-        </dl>
-      </div>
-
-      <div class="relative mx-auto w-full max-w-md lg:max-w-none">
-        <div data-hero-photo class="arch relative aspect-[4/5] bg-blush lg:ml-auto lg:w-[88%]">
+    <!-- Фото: на телефоне сверху, на компьютере справа во всю высоту -->
+    <div data-media class="media relative h-[56svh] w-full shrink-0 lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[58%]">
+      <div data-parallax class="absolute -inset-6">
+        <div data-media-inner class="relative h-full w-full">
           <img
-            :src="heroImages.main"
+            v-for="(src, i) in slides"
+            :key="src"
+            :src="src"
             alt=""
-            width="1000"
-            height="1250"
-            fetchpriority="high"
-            class="h-full w-full object-cover"
+            width="1600"
+            height="1600"
+            :fetchpriority="i === 0 ? 'high' : undefined"
+            :loading="i === 0 ? 'eager' : 'lazy'"
+            class="slide absolute inset-0 h-full w-full object-cover"
+            :class="{ 'slide--active': current === i }"
           >
         </div>
+      </div>
 
-        <div data-hero-float class="absolute -bottom-6 left-0 h-32 w-32 overflow-hidden rounded-full border-[6px] border-milk sm:h-40 sm:w-40 lg:left-2">
-          <img :src="heroImages.small" alt="" width="600" height="600" loading="lazy" class="h-full w-full object-cover">
+      <div class="media-fade pointer-events-none absolute inset-x-0 bottom-0 hidden h-1/4 lg:block" aria-hidden="true" />
+
+      <span
+        v-for="(sp, i) in sparkles"
+        :key="i"
+        class="sparkle-wrap pointer-events-none absolute"
+        :style="{ left: `${sp.x}%`, top: `${sp.y}%` }"
+        aria-hidden="true"
+      >
+        <svg class="sparkle" :width="sp.s" :height="sp.s" viewBox="0 0 24 24" :style="{ animationDelay: `${sp.d}s` }">
+          <path d="M12 0c.6 6.6 5.4 11.4 12 12-6.6.6-11.4 5.4-12 12-.6-6.6-5.4-11.4-12-12C6.6 11.4 11.4 6.6 12 0z" fill="#fff" />
+        </svg>
+      </span>
+    </div>
+
+    <div data-content class="relative z-10 mx-auto -mt-24 w-full max-w-7xl px-4 pb-16 sm:px-6 lg:mt-0 lg:flex lg:min-h-[100svh] lg:items-center lg:px-10 lg:pb-0 lg:pt-[72px]">
+      <div class="max-w-xl">
+        <p data-fade class="eyebrow">
+          <span class="h-px w-6 bg-current" aria-hidden="true" />
+          {{ t('hero.eyebrow') }}
+        </p>
+
+        <h1 class="mt-5 text-[clamp(2.7rem,6.2vw,5.4rem)] font-semibold leading-[1] tracking-[-0.045em]">
+          <span class="line"><span class="line-inner">{{ t('hero.line1') }}</span></span>
+          <span class="line"><span class="line-inner">{{ t('hero.line2') }}</span></span>
+          <span class="line line--accent"><span class="line-inner accent text-[1.15em]">{{ t('hero.line3') }}</span></span>
+        </h1>
+
+        <p data-fade class="mt-6 text-lg font-semibold tracking-tight">@ {{ salon.brand }} {{ salon.signature }}.</p>
+        <p data-fade class="mt-2 max-w-md leading-relaxed text-ink-soft">{{ t('hero.subtitle') }}</p>
+
+        <div data-fade class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+          <a href="#booking" class="hero-btn group">
+            {{ t('cta.bookOnline') }}
+            <svg class="transition-transform duration-300 group-hover:translate-x-1" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+          <a href="#works" class="text-sm font-semibold text-ink underline decoration-rose decoration-2 underline-offset-[6px] transition hover:text-rose-deep">
+            {{ t('hero.seeWorks') }}
+          </a>
         </div>
 
-        <svg data-hero-float class="spin absolute -top-4 right-0 h-28 w-28 text-plum sm:h-32 sm:w-32" viewBox="0 0 120 120" aria-hidden="true">
-          <defs><path id="ring" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1-92 0" /></defs>
-          <circle cx="60" cy="60" r="58" fill="#FFF7F5" />
-          <text font-size="9.5" font-weight="600" fill="currentColor"><textPath href="#ring" textLength="286" lengthAdjust="spacing">SMARTTNAILS · NAIL STUDIO · ASTANA ·</textPath></text>
-          <path d="M60 44c4.5 0 6.5 6.5 6.5 11v8.5c0 2.8-1.8 4.5-4.5 4.5h-4c-2.7 0-4.5-1.7-4.5-4.5V55c0-4.5 2-11 6.5-11z" fill="#EE9BB8" />
-        </svg>
-
-        <div data-hero-float class="absolute -right-1 bottom-10 w-56 rounded-3xl bg-white/90 p-4 shadow-[0_20px_60px_-20px_rgba(123,45,99,0.35)] backdrop-blur sm:-right-4">
-          <p class="text-xs font-medium text-ink-soft">{{ t('hero.nearest') }}</p>
-          <ClientOnly>
-            <p class="mt-1 text-lg font-semibold first-letter:uppercase">{{ nearestLabel }}</p>
-            <template #fallback>
-              <p class="mt-1 h-7 w-32 animate-pulse rounded-lg bg-blush" />
-            </template>
-          </ClientOnly>
-          <a href="#booking" class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-rose-deep">
-            {{ t('cta.book') }} →
-          </a>
+        <!-- Переключатель фото с полоской, которая заполняется до смены -->
+        <div data-fade class="mt-12 flex items-center gap-4">
+          <span class="text-xs font-semibold tabular-nums text-ink/50">0{{ current + 1 }} / 0{{ slides.length }}</span>
+          <div class="flex gap-1.5">
+            <button
+              v-for="(src, i) in slides"
+              :key="src"
+              type="button"
+              class="flex h-11 items-center"
+              :aria-label="t('hero.slide', { n: i + 1, total: slides.length })"
+              :aria-current="current === i ? 'true' : undefined"
+              @click="goTo(i)"
+            >
+              <span class="relative block h-[3px] w-10 overflow-hidden rounded-full bg-ink/15">
+                <span v-if="current === i" :key="`bar-${current}`" class="progress absolute inset-y-0 left-0 rounded-full bg-rose-deep" :style="{ animationDuration: `${SLIDE_MS}ms` }" />
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -146,13 +199,125 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.spin {
-  animation: spin 22s linear infinite;
+/* Фото растворяется в розовом фоне: на телефоне книзу, на компьютере влево.
+   Низ на компьютере растворяет отдельный градиент (.media-fade), а не вторая маска — так надёжнее во всех браузерах */
+.media {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+@media (min-width: 1024px) {
+  .media {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgb(0 0 0 / 0.55) 16%, #000 36%);
+    mask-image: linear-gradient(to right, transparent 0%, rgb(0 0 0 / 0.55) 16%, #000 36%);
   }
+}
+
+.media-fade {
+  background: linear-gradient(to top, var(--color-blush), transparent);
+}
+
+.slide {
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+
+.slide--active {
+  opacity: 1;
+  animation: kenburns 7s ease-out forwards;
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1.1) translate3d(1.5%, 1%, 0);
+  }
+  to {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+.sparkle {
+  display: block;
+  filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.9));
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(0.45) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+}
+
+/* Строки заголовка выезжают снизу из-под «маски» */
+.line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+.line--accent {
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
+
+.line-inner {
+  display: inline-block;
+}
+
+.hero-btn {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: 6px;
+  background: var(--color-rose);
+  padding: 0 1.6rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  box-shadow: 0 18px 40px -18px rgb(201 80 126 / 0.7);
+  transition: background-color 0.3s, color 0.3s, transform 0.3s var(--ease-soft);
+}
+
+.hero-btn:hover {
+  background: var(--color-plum);
+  color: var(--color-milk);
+  transform: translateY(-2px);
+}
+
+.progress {
+  width: 0;
+  animation: fill linear forwards;
+}
+
+@keyframes fill {
+  to {
+    width: 100%;
+  }
+}
+
+/* До вступительной анимации: фото закрыто, строки опущены, остальное прозрачно */
+.hero--armed [data-media] {
+  clip-path: inset(0% 0% 0% 100%);
+}
+
+.hero--armed .line-inner {
+  transform: translateY(115%);
+}
+
+.hero--armed [data-fade],
+.hero--armed .sparkle-wrap {
+  opacity: 0;
 }
 </style>

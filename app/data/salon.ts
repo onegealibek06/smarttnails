@@ -131,10 +131,5 @@ export const gallery: GalleryItem[] = [
 
 export const workSrc = (file: string, size: 640 | 1400 = 640) => `/works/${file}-${size}.webp`
 
-export const heroImages = {
-  main: '/works/hero-main.webp',
-  small: '/works/hero-small.webp',
-}
-
 export const faqKeys = ['wear', 'late', 'cancel', 'payment', 'kids'] as const
 export const whyKeys = ['natural', 'cuticle', 'painless', 'sterile'] as const

@@ -13,10 +13,9 @@ const whatsappFallback = computed(() => whatsappLink(salon.whatsapp, t('footer.w
   message: form.message.trim(),
 })))
 
-function onPhoneInput(e: Event) {
-  form.phone = formatKzPhone((e.target as HTMLInputElement).value)
-  errors.phone = false
-}
+// Ошибка пропадает, как только начали исправлять поле
+watch(() => form.name, () => { errors.name = false })
+watch(() => form.phone, () => { errors.phone = false })
 
 async function submit() {
   errors.name = form.name.trim().length < 2
@@ -41,38 +40,32 @@ async function submit() {
     <input v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
 
     <div class="grid gap-3 sm:grid-cols-2">
-      <label class="block">
-        <span class="field-label">{{ t('footer.name') }}</span>
-        <input
-          v-model="form.name"
-          type="text"
-          autocomplete="given-name"
-          :placeholder="t('footer.namePlaceholder')"
-          class="field"
-          :aria-invalid="errors.name"
-          @input="errors.name = false"
-        >
-        <span v-if="errors.name" class="mt-1 block text-xs text-rose-deep" role="alert">{{ t('footer.errors.name') }}</span>
-      </label>
-      <label class="block">
-        <span class="field-label">{{ t('footer.phone') }}</span>
-        <input
-          :value="form.phone"
-          type="tel"
-          inputmode="tel"
-          autocomplete="tel"
-          :placeholder="t('footer.phonePlaceholder')"
-          class="field tabular-nums"
-          :aria-invalid="errors.phone"
-          @input="onPhoneInput"
-        >
-        <span v-if="errors.phone" class="mt-1 block text-xs text-rose-deep" role="alert">{{ t('footer.errors.phone') }}</span>
-      </label>
+      <FloatField
+        v-model="form.name"
+        :label="t('footer.name')"
+        :placeholder="t('footer.namePlaceholder')"
+        autocomplete="given-name"
+        :error="errors.name ? t('footer.errors.name') : undefined"
+      />
+      <FloatField
+        v-model="form.phone"
+        type="tel"
+        inputmode="tel"
+        autocomplete="tel"
+        :label="t('footer.phone')"
+        :placeholder="t('footer.phonePlaceholder')"
+        :format="formatKzPhone"
+        :error="errors.phone ? t('footer.errors.phone') : undefined"
+      />
     </div>
-    <label class="block">
-      <span class="field-label">{{ t('footer.message') }}</span>
-      <textarea v-model="form.message" rows="2" maxlength="1000" :placeholder="t('footer.messagePlaceholder')" class="field resize-none py-3" />
-    </label>
+    <FloatField
+      v-model="form.message"
+      textarea
+      :rows="2"
+      :maxlength="1000"
+      :label="t('footer.message')"
+      :placeholder="t('footer.messagePlaceholder')"
+    />
 
     <button type="submit" class="btn btn-primary mt-1 self-start" :disabled="status === 'sending'">
       {{ status === 'sending' ? t('footer.sending') : t('footer.send') }}
@@ -90,38 +83,3 @@ async function submit() {
     <p class="text-xs leading-relaxed text-ink-soft">{{ t('footer.consent') }}</p>
   </form>
 </template>
-
-<style scoped>
-.field-label {
-  display: inline-block;
-  border-radius: 6px;
-  background: var(--color-rose);
-  padding: 1px 8px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--color-ink);
-}
-
-.field {
-  margin-top: 0.4rem;
-  display: block;
-  width: 100%;
-  min-height: 48px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--color-ink) 10%, transparent);
-  background: white;
-  padding: 0 1rem;
-  font-size: 16px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.field:focus {
-  outline: none;
-  border-color: var(--color-plum);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-rose) 35%, transparent);
-}
-
-.field[aria-invalid="true"] {
-  border-color: var(--color-rose-deep);
-}
-</style>

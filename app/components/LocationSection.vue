@@ -16,7 +16,7 @@ const mapSrc = computed(() => {
 </script>
 
 <template>
-  <section id="location" class="py-20 sm:py-28">
+  <section id="location" data-bg="#FFF7F5" class="py-20 sm:py-28">
     <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-10">
       <div class="flex flex-col">
         <SectionHeading v-reveal :eyebrow="t('location.eyebrow')" title-key="location.title" accent-key="location.accent" />

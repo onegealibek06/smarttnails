@@ -12,7 +12,7 @@ const icons: Record<(typeof whyKeys)[number], string> = {
 </script>
 
 <template>
-  <section class="py-20 sm:py-28">
+  <section data-bg="#FFF7F5" class="py-20 sm:py-28">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
       <SectionHeading v-reveal :eyebrow="t('why.eyebrow')" title-key="why.title" accent-key="why.accent" />
 

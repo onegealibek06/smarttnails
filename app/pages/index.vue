@@ -3,6 +3,8 @@ import { salon, locations } from '~/data/salon'
 
 const current = locations[0]!
 
+usePageBackground()
+
 // Разметка для Google: карточка бизнеса с адресом и часами работы
 useHead({
   script: [{

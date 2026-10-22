@@ -7,7 +7,7 @@ const { selected, toggleService, totalPrice, totalDuration } = useBooking()
 </script>
 
 <template>
-  <section id="services" class="bg-white/60 py-20 sm:py-28">
+  <section id="services" data-bg="#FFFAF8" class="py-20 sm:py-28">
     <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-12 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16 lg:px-10">
       <div class="lg:sticky lg:top-28 lg:self-start">
         <SectionHeading v-reveal :eyebrow="t('services.eyebrow')" title-key="services.title" accent-key="services.accent" />

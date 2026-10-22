@@ -20,14 +20,22 @@
 }
 
 @layer base {
+  /* Фон всей страницы: его плавно меняет usePageBackground при прокрутке */
+  :root {
+    --page-bg: #F9E4EB;
+  }
+
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 88px;
     -webkit-text-size-adjust: 100%;
+    background: var(--page-bg);
+    transition: background-color 1.2s var(--ease-soft);
   }
 
   body {
-    background: var(--color-milk);
+    background: var(--page-bg);
+    transition: background-color 1.2s var(--ease-soft);
     color: var(--color-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;

@@ -5,7 +5,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <section id="faq" class="py-20 sm:py-28">
+  <section id="faq" data-bg="#FFF7F5" class="py-20 sm:py-28">
     <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16 lg:px-10">
       <SectionHeading v-reveal :eyebrow="t('faq.eyebrow')" title-key="faq.title" accent-key="faq.accent" />
 

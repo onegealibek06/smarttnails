@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="top" ref="root" class="hero relative flex min-h-[100svh] flex-col overflow-hidden bg-blush lg:block" :class="{ 'hero--armed': armed }">
+  <section id="top" ref="root" data-bg="#F9E4EB" class="hero relative flex min-h-[100svh] flex-col overflow-hidden lg:block" :class="{ 'hero--armed': armed }">
     <div data-glow class="pointer-events-none absolute -left-48 top-[38%] h-[36rem] w-[36rem] rounded-full bg-rose/55 blur-[110px]" aria-hidden="true" />
     <div class="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-lilac/70 blur-[90px]" aria-hidden="true" />
 
@@ -218,7 +218,7 @@ onBeforeUnmount(() => {
 }
 
 .media-fade {
-  background: linear-gradient(to top, var(--color-blush), transparent);
+  background: linear-gradient(to top, var(--page-bg), transparent);
 }
 
 .slide {

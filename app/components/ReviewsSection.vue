@@ -102,7 +102,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="reviews" ref="root" class="reviews overflow-x-clip py-20 sm:py-28" :class="{ armed, visible }">
+  <section id="reviews" ref="root" data-bg="#F8ECF4" class="reviews overflow-x-clip py-20 sm:py-28" :class="{ armed, visible }">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
       <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,0.33fr)_minmax(0,0.67fr)] lg:gap-10">
         <div>

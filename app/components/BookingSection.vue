@@ -57,12 +57,11 @@ watch(date, () => {
   time.value = null
 })
 
-// Маска телефона: +7 7XX XXX XX XX
 const phoneDigits = computed(() => form.phone.replace(/\D/g, ''))
-function onPhoneInput(e: Event) {
-  form.phone = formatKzPhone((e.target as HTMLInputElement).value)
-  errors.phone = false
-}
+
+// Ошибка пропадает, как только начали исправлять поле
+watch(() => form.name, () => { errors.name = false })
+watch(() => form.phone, () => { errors.phone = false })
 
 function submit() {
   errors.name = form.name.trim().length < 2
@@ -133,7 +132,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <section id="booking" class="px-2 py-8 sm:px-4 sm:py-12">
+  <section id="booking" data-bg="#F2EBF8" class="px-2 py-8 sm:px-4 sm:py-12">
     <div class="relative mx-auto max-w-7xl overflow-clip rounded-[36px] bg-ink px-4 py-14 text-milk sm:rounded-[48px] sm:px-10 sm:py-20 lg:px-16">
       <div class="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-plum/60 blur-3xl" aria-hidden="true" />
       <div class="pointer-events-none absolute -bottom-40 left-10 h-96 w-96 rounded-full bg-rose-deep/25 blur-3xl" aria-hidden="true" />
@@ -264,41 +263,36 @@ onMounted(() => {
                   <p class="mt-2 font-semibold">{{ t('services.price', { price: formatPrice(totalPrice, lang) }) }}</p>
                 </div>
 
-                <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                  <label class="block">
-                    <span class="text-sm font-medium">{{ t('booking.name') }}</span>
-                    <input
-                      v-model="form.name"
-                      type="text"
-                      autocomplete="given-name"
-                      :placeholder="t('booking.namePlaceholder')"
-                      class="field"
-                      :aria-invalid="errors.name"
-                      @input="errors.name = false"
-                    >
-                    <span v-if="errors.name" class="mt-1 block text-sm text-rose-deep" role="alert">{{ t('booking.errors.name') }}</span>
-                  </label>
-                  <label class="block">
-                    <span class="text-sm font-medium">{{ t('booking.phone') }}</span>
-                    <input
-                      :value="form.phone"
-                      type="tel"
-                      inputmode="tel"
-                      autocomplete="tel"
-                      :placeholder="t('booking.phonePlaceholder')"
-                      class="field tabular-nums"
-                      :aria-invalid="errors.phone"
-                      @input="onPhoneInput"
-                    >
-                    <span v-if="errors.phone" class="mt-1 block text-sm text-rose-deep" role="alert">{{ t('booking.errors.phone') }}</span>
-                  </label>
+                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                  <FloatField
+                    v-model="form.name"
+                    :label="t('booking.name')"
+                    :placeholder="t('booking.namePlaceholder')"
+                    autocomplete="given-name"
+                    :error="errors.name ? t('booking.errors.name') : undefined"
+                  />
+                  <FloatField
+                    v-model="form.phone"
+                    type="tel"
+                    inputmode="tel"
+                    autocomplete="tel"
+                    :label="t('booking.phone')"
+                    :placeholder="t('booking.phonePlaceholder')"
+                    :format="formatKzPhone"
+                    :error="errors.phone ? t('booking.errors.phone') : undefined"
+                  />
                 </div>
-                <label class="mt-4 block">
-                  <span class="text-sm font-medium">{{ t('booking.comment') }}</span>
-                  <textarea v-model="form.comment" rows="2" :placeholder="t('booking.commentPlaceholder')" class="field resize-none py-3" />
-                </label>
-                <label class="mt-4 flex cursor-pointer items-center gap-3 text-sm">
-                  <input v-model="form.remind" type="checkbox" class="h-5 w-5 shrink-0 accent-[#C9507E]">
+                <FloatField
+                  v-model="form.comment"
+                  class="mt-3"
+                  textarea
+                  :rows="2"
+                  :label="t('booking.comment')"
+                  :placeholder="t('booking.commentPlaceholder')"
+                />
+                <label class="mt-5 flex cursor-pointer items-center gap-3 text-sm">
+                  <input v-model="form.remind" type="checkbox" role="switch" class="peer sr-only">
+                  <span class="switch" aria-hidden="true" />
                   {{ t('booking.remind') }}
                 </label>
 
@@ -353,27 +347,41 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.field {
-  margin-top: 0.4rem;
-  display: block;
-  width: 100%;
-  min-height: 48px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
+/* Переключатель «Напомнить в Telegram» вместо старомодной галочки */
+.switch {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgb(42 20 36 / 0.12);
+  transition: background-color 0.3s;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
   background: white;
-  padding: 0 1rem;
-  font-size: 16px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 6px rgb(42 20 36 / 0.2);
+  transition: transform 0.35s var(--ease-soft);
 }
 
-.field:focus {
-  outline: none;
-  border-color: var(--color-plum);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-rose) 35%, transparent);
+.peer:checked + .switch {
+  background: var(--color-rose-deep);
 }
 
-.field[aria-invalid="true"] {
-  border-color: var(--color-rose-deep);
+.peer:checked + .switch::after {
+  transform: translateX(18px);
+}
+
+.peer:focus-visible + .switch {
+  outline: 2px solid var(--color-plum);
+  outline-offset: 3px;
 }
 
 .no-scrollbar {

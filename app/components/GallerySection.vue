@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { gallery, salon, workSrc, type GalleryItem, type GalleryTag } from '~/data/salon'
 
 const { t } = useI18n()
@@ -10,9 +12,12 @@ const items = computed(() => filter.value === 'all' ? gallery : gallery.filter(g
 
 const tagLabel = (tag: GalleryTag | 'all') => tag === 'all' ? t('gallery.all') : t(`gallery.tags.${tag}`)
 
-// Живая лента: фото делятся на 2 ряда, которые едут навстречу друг другу.
+// Живая лента: фото делятся на 2 ряда, которые медленно плывут навстречу друг другу.
 // Каждый ряд повторяется дважды — когда первая копия уезжает, на её место встаёт вторая, и цикл бесшовный.
 interface Tile { item: GalleryItem, index: number, clone: boolean }
+
+// Лёгкий наклон плиток, как у разложенных на столе фотографий
+const TILTS = [-1.6, 1.1, -0.6, 1.5, -1.2, 0.7]
 
 const rows = computed(() => {
   const list = items.value.map((item, index) => ({ item, index }))
@@ -24,7 +29,8 @@ const rows = computed(() => {
       ...base.map((x, i) => ({ ...x, clone: i >= row.length })),
       ...base.map(x => ({ ...x, clone: true })),
     ]
-    return { tiles, duration: Math.max(50, base.length * 8) }
+    // Секунд на одну копию ряда: чем больше фото, тем дольше — скорость остаётся спокойной
+    return { tiles, duration: Math.max(70, base.length * 11) }
   })
 })
 
@@ -70,49 +76,103 @@ function onTouchEnd(e: TouchEvent) {
   if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1)
 }
 
-// При прокрутке страницы ряды ещё и слегка разъезжаются в стороны
-let scrollFx: { kill: () => void } | undefined
+// Движение ленты на GSAP: так её можно плавно притормозить, а не остановить рывком
+let motion: gsap.Context | undefined
 
-async function setupScrollFx() {
-  scrollFx?.kill()
-  scrollFx = undefined
+function setupMotion() {
+  motion?.revert()
+  motion = undefined
   if (view.value !== 'marquee' || !marquee.value) return
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  const { gsap } = await import('gsap')
-  const { ScrollTrigger } = await import('gsap/ScrollTrigger')
   gsap.registerPlugin(ScrollTrigger)
-  const rowsEl = marquee.value.querySelectorAll<HTMLElement>('[data-row]')
-  scrollFx = gsap.context(() => {
-    rowsEl.forEach((row, i) => {
-      gsap.fromTo(row, { x: i % 2 ? -60 : 60 }, {
-        x: i % 2 ? 60 : -60,
+
+  const rowsEl = [...marquee.value.querySelectorAll<HTMLElement>('[data-row]')]
+  motion = gsap.context(() => {
+    const tweens = rowsEl.map((row, i) => {
+      const track = row.querySelector('.marquee-track')
+      const reverse = i % 2 === 1
+      const tween = gsap.fromTo(track, { xPercent: reverse ? -50 : 0 }, {
+        xPercent: reverse ? 0 : -50,
+        duration: rows.value[i]?.duration ?? 90,
         ease: 'none',
-        scrollTrigger: { trigger: marquee.value, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
+        repeat: -1,
+      })
+
+      // Наведение или касание: лента мягко замедляется до остановки и так же мягко трогается
+      let hovered = false
+      row.addEventListener('pointerenter', () => {
+        hovered = true
+        gsap.to(tween, { timeScale: 0, duration: 0.9, ease: 'power2.out', overwrite: true })
+      })
+      row.addEventListener('pointerleave', () => {
+        hovered = false
+        gsap.to(tween, { timeScale: 1, duration: 1.2, ease: 'power2.inOut', overwrite: true })
+      })
+      return { tween, isHovered: () => hovered }
+    })
+
+    // Быстрая прокрутка страницы чуть подгоняет ленту, потом она снова успокаивается
+    ScrollTrigger.create({
+      trigger: marquee.value,
+      start: 'top bottom',
+      end: 'bottom top',
+      onUpdate: (self) => {
+        const boost = Math.min(Math.abs(self.getVelocity()) / 900, 1.5)
+        if (boost < 0.15) return
+        for (const { tween, isHovered } of tweens) {
+          if (isHovered()) continue
+          gsap.to(tween, {
+            timeScale: 1 + boost,
+            duration: 0.25,
+            ease: 'power1.out',
+            overwrite: true,
+            onComplete: () => {
+              if (!isHovered()) gsap.to(tween, { timeScale: 1, duration: 1.4, ease: 'power2.out', overwrite: true })
+            },
+          })
+        }
+      },
+    })
+
+    // И ряды слегка расходятся в стороны при прокрутке
+    rowsEl.forEach((row, i) => {
+      gsap.fromTo(row, { x: i % 2 ? -28 : 28 }, {
+        x: i % 2 ? 28 : -28,
+        ease: 'none',
+        scrollTrigger: { trigger: marquee.value, start: 'top bottom', end: 'bottom top', scrub: 0.8 },
       })
     })
-  })
+  }, marquee.value)
 }
 
-// Ждём, пока закончится смена ленты/сетки (переход 0,3 с), и только потом цепляем эффект к новым рядам
-watch([view, filter], () => setTimeout(setupScrollFx, 400))
+// Ждём, пока закончится смена ленты/сетки (переход 0,3 с), и только потом запускаем движение новых рядов
+watch([view, filter], () => setTimeout(setupMotion, 400))
 
 onMounted(() => {
   window.addEventListener('keydown', onKey)
-  setupScrollFx()
+  setupMotion()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
-  scrollFx?.kill()
+  motion?.revert()
 })
 </script>
 
 <template>
-  <section id="works" class="overflow-x-clip py-20 sm:py-28">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+  <section id="works" data-bg="#FBEEF3" class="relative overflow-x-clip py-20 sm:py-28">
+    <!-- Размытые розовые блики медленно плавают за лентой -->
+    <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <span class="bokeh left-[6%] top-[38%] h-64 w-64 bg-rose/30" style="animation-duration: 26s" />
+      <span class="bokeh left-[38%] top-[62%] h-80 w-80 bg-lilac/80" style="animation-duration: 32s; animation-delay: -8s" />
+      <span class="bokeh right-[8%] top-[30%] h-72 w-72 bg-blush-deep/70" style="animation-duration: 28s; animation-delay: -14s" />
+      <span class="bokeh right-[30%] top-[78%] h-48 w-48 bg-rose/25" style="animation-duration: 22s; animation-delay: -4s" />
+    </div>
+
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
       <div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <SectionHeading v-reveal :eyebrow="t('gallery.eyebrow')" title-key="gallery.title" accent-key="gallery.accent" />
-        <a v-reveal :href="salon.instagram" target="_blank" rel="noopener" class="btn btn-ghost self-start sm:self-auto">
+        <a v-reveal :href="salon.instagram" target="_blank" rel="noopener" class="btn btn-ghost self-start bg-white/60 sm:self-auto">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" /></svg>
           {{ t('gallery.more') }}
         </a>
@@ -152,46 +212,46 @@ onBeforeUnmount(() => {
 
     <Transition name="swap" mode="out-in">
       <!-- Живая лента -->
-      <div v-if="view === 'marquee'" :key="`m-${filter}`" ref="marquee" class="mt-10 flex flex-col gap-3 sm:gap-4">
-        <div v-for="(row, r) in rows" :key="r" data-row class="marquee">
-          <div
-            class="marquee-track"
-            :class="{ 'marquee-track--reverse': r % 2 === 1 }"
-            :style="{ '--duration': `${row.duration}s` }"
-          >
-            <button
+      <div v-if="view === 'marquee'" :key="`m-${filter}`" ref="marquee" class="relative mt-8 flex flex-col">
+        <div v-for="(row, r) in rows" :key="r" v-reveal="r * 0.15" data-row class="marquee">
+          <div class="marquee-track">
+            <div
               v-for="(tile, i) in row.tiles"
               :key="i"
-              type="button"
-              class="tile group"
-              :class="{ clone: tile.clone }"
-              :style="{ aspectRatio: `${tile.item.w} / ${tile.item.h}` }"
-              :aria-hidden="tile.clone ? 'true' : undefined"
-              :tabindex="tile.clone ? -1 : 0"
-              :aria-label="t('gallery.open')"
-              @click="open(tile.index, $event)"
+              class="tile-wrap"
+              :style="{ animationDelay: `${-(i % 7) * 0.9}s`, animationDuration: `${6 + (i % 3)}s` }"
             >
-              <img
-                :src="workSrc(tile.item.file)"
-                :alt="tile.clone ? '' : t('gallery.alt', { tag: tagLabel(tile.item.tag) })"
-                :width="tile.item.w"
-                :height="tile.item.h"
-                loading="lazy"
-                decoding="async"
-                class="kenburns h-full w-full object-cover"
-                :style="{ animationDelay: `${-(i % 6) * 1.6}s` }"
+              <button
+                type="button"
+                class="tile group"
+                :style="{ aspectRatio: `${tile.item.w} / ${tile.item.h}`, '--tilt': `${TILTS[(i + r) % TILTS.length]}deg` }"
+                :aria-hidden="tile.clone ? 'true' : undefined"
+                :tabindex="tile.clone ? -1 : 0"
+                :aria-label="t('gallery.open')"
+                @click="open(tile.index, $event)"
               >
-              <span class="pointer-events-none absolute bottom-3 left-3 rounded-full bg-milk/90 px-3 py-1 text-xs font-semibold opacity-0 backdrop-blur transition duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
-                {{ tagLabel(tile.item.tag) }}
-              </span>
-            </button>
+                <img
+                  :src="workSrc(tile.item.file)"
+                  :alt="tile.clone ? '' : t('gallery.alt', { tag: tagLabel(tile.item.tag) })"
+                  :width="tile.item.w"
+                  :height="tile.item.h"
+                  loading="lazy"
+                  decoding="async"
+                  class="kenburns h-full w-full object-cover"
+                  :style="{ animationDelay: `${-(i % 6) * 2}s` }"
+                >
+                <span class="pointer-events-none absolute bottom-3 left-3 translate-y-1 rounded-full bg-milk/90 px-3 py-1 text-xs font-semibold opacity-0 backdrop-blur transition duration-500 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+                  {{ tagLabel(tile.item.tag) }}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
-        <p class="px-4 text-center text-xs text-ink-soft">{{ t('gallery.hint') }}</p>
+        <p class="mt-2 px-4 text-center text-xs text-ink-soft">{{ t('gallery.hint') }}</p>
       </div>
 
       <!-- Сетка -->
-      <div v-else :key="`g-${filter}`" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+      <div v-else :key="`g-${filter}`" class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
         <ul class="mt-8 columns-2 gap-3 sm:columns-3 sm:gap-4 lg:columns-4">
           <li v-for="(item, i) in items" :key="item.file" class="mb-3 break-inside-avoid sm:mb-4">
             <button
@@ -246,80 +306,113 @@ onBeforeUnmount(() => {
   display: none;
 }
 
-.marquee {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+.bokeh {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(60px);
+  animation: drift ease-in-out infinite alternate;
 }
 
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(60px, -40px, 0) scale(1.15);
+  }
+}
+
+/* Края ленты мягко растворяются */
+.marquee {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 0 22px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+/* Отступы делаем полями плиток, а не gap: так две копии ряда ровно по 50% и цикл без скачка */
 .marquee-track {
   display: flex;
-  gap: 14px;
   width: max-content;
-  animation: marquee var(--duration) linear infinite;
+  will-change: transform;
 }
 
-.marquee-track--reverse {
-  animation-direction: reverse;
+/* Каждая плитка чуть покачивается вверх-вниз, как на воде */
+.tile-wrap {
+  flex: none;
+  padding-right: 18px;
+  animation: bob ease-in-out infinite alternate;
 }
 
-/* Пауза, когда смотрят на фото: наведение мышью, фокус с клавиатуры, палец на экране */
-.marquee:hover .marquee-track,
-.marquee:focus-within .marquee-track,
-.marquee:active .marquee-track {
-  animation-play-state: paused;
-}
-
-@keyframes marquee {
+@keyframes bob {
+  from {
+    transform: translateY(-5px);
+  }
   to {
-    /* Сдвиг ровно на одну копию ряда (половина ширины + половина промежутка) */
-    transform: translateX(calc(-50% - 7px));
+    transform: translateY(5px);
   }
 }
 
 .tile {
   position: relative;
-  height: 220px;
-  flex: none;
+  display: block;
+  height: 210px;
   overflow: hidden;
-  border-radius: 26px;
+  border: 5px solid white;
+  border-radius: 30px;
   background: var(--color-blush);
-  transition: transform 0.5s var(--ease-soft), border-radius 0.5s var(--ease-soft);
+  box-shadow: 0 22px 44px -26px rgb(201 80 126 / 0.55);
+  transform: rotate(var(--tilt));
+  transition: transform 0.7s var(--ease-soft), box-shadow 0.7s var(--ease-soft);
 }
 
-.tile:hover {
-  transform: translateY(-6px) rotate(-1deg);
-  border-radius: 40px;
+/* Блик, как отблеск на свежем лаке, пробегает при наведении */
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.45) 50%, transparent 65%);
+  transform: translateX(-120%);
+  transition: transform 1s var(--ease-soft);
+  pointer-events: none;
 }
 
-.marquee:nth-child(2) .tile:nth-child(odd) {
-  border-radius: 120px 120px 26px 26px;
+.tile:hover,
+.tile:focus-visible {
+  transform: rotate(0deg) scale(1.05);
+  box-shadow: 0 30px 60px -24px rgb(201 80 126 / 0.6);
+}
+
+.tile:hover::after,
+.tile:focus-visible::after {
+  transform: translateX(120%);
 }
 
 @media (min-width: 640px) {
   .tile {
-    height: 300px;
+    height: 280px;
   }
 }
 
 @media (min-width: 1024px) {
   .tile {
-    height: 340px;
+    height: 320px;
   }
 }
 
-/* Медленный «наезд камеры» внутри каждой плитки — фото будто живые */
+/* Медленный и едва заметный «наезд камеры» внутри плитки */
 .kenburns {
-  animation: kenburns 9s ease-in-out infinite alternate;
+  animation: kenburns 12s ease-in-out infinite alternate;
   transform-origin: 50% 60%;
 }
 
 @keyframes kenburns {
   from {
-    transform: scale(1) translate3d(0, 0, 0);
+    transform: scale(1);
   }
   to {
-    transform: scale(1.12) translate3d(-2%, -2%, 0);
+    transform: scale(1.07) translate3d(-1.5%, -1.5%, 0);
   }
 }
 
@@ -328,12 +421,13 @@ onBeforeUnmount(() => {
     overflow-x: auto;
   }
 
-  .marquee-track,
-  .kenburns {
+  .tile-wrap,
+  .kenburns,
+  .bokeh {
     animation: none !important;
   }
 
-  .clone {
+  .tile-wrap:has([tabindex="-1"]) {
     display: none;
   }
 }
@@ -358,12 +452,12 @@ onBeforeUnmount(() => {
 
 .swap-enter-active,
 .swap-leave-active {
-  transition: opacity 0.3s var(--ease-soft), transform 0.3s var(--ease-soft);
+  transition: opacity 0.4s var(--ease-soft), transform 0.4s var(--ease-soft);
 }
 
 .swap-enter-from,
 .swap-leave-to {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(10px);
 }
 </style>

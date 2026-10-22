@@ -1,0 +1,140 @@
+// Все данные студии в одном месте: поменяли здесь — поменялось на всём сайте.
+
+// Варианты логотипа из обсуждения: mix — курсив-микс, dot — ноготок вместо точки,
+// tt — двойное tt, badge — значок-стикер
+export type LogoVariant = 'mix' | 'dot' | 'tt' | 'badge'
+
+export const salon = {
+  brand: 'Smarttnails',
+  owner: 'Ardak Aldanazarova',
+  // Как студия подписывается на сайте: «Smarttnails by Ardak Aldanazarova»
+  signature: 'by Ardak Aldanazarova',
+  // TODO: поставить вариант, который выберет сестра
+  logo: 'mix' as LogoVariant,
+  master: 'Ардак',
+  // Контакты из карточки 2GIS
+  phone: '+77769946660',
+  whatsapp: '77769946660',
+  instagram: 'https://instagram.com/smarttnails_ardak',
+  instagramHandle: '@smarttnails_ardak',
+  telegram: 'https://t.me/symbatnails',
+  twoGis: 'https://2gis.kz/astana/firm/70000001083753872',
+  rating: 5,
+  ratingCount: 7,
+  // Рабочие часы в минутах от полуночи: 09:00–22:00, ежедневно
+  workStart: 9 * 60,
+  workEnd: 22 * 60,
+  slotStep: 30,
+  developer: {
+    name: 'Onege Alibek',
+    url: 'https://portfolio-vue-j15o.vercel.app/',
+  },
+}
+
+export type Lang = 'ru' | 'kk' | 'en'
+type Localized = Record<Lang, string>
+
+export interface Location {
+  id: string
+  // С какой даты сестра принимает по этому адресу (YYYY-MM-DD)
+  from: string
+  street: Localized
+  details: Localized
+  district: Localized
+  lat: number
+  lon: number
+}
+
+// Сестра часто переезжает: новый адрес добавляется сюда с датой «from».
+// Клиентка видит адрес именно на тот день, на который записывается.
+export const locations: Location[] = [
+  {
+    id: 'mailin-19',
+    from: '2024-01-01',
+    street: {
+      ru: 'ул. Бейимбет Майлина, 19',
+      kk: 'Бейімбет Майлин көшесі, 19',
+      en: '19 Beimbet Mailin St',
+    },
+    details: {
+      ru: 'кабинет 533, 5 этаж',
+      kk: '533 кабинет, 5 қабат',
+      en: 'Office 533, 5th floor',
+    },
+    district: {
+      ru: 'Алматинский район, Астана',
+      kk: 'Алматы ауданы, Астана',
+      en: 'Almaty district, Astana',
+    },
+    lat: 51.14574,
+    lon: 71.476058,
+  },
+  // Пример переезда:
+  // { id: 'new-place', from: '2026-11-15', street: { ru: '…', kk: '…', en: '…' }, details: {…}, district: {…}, lat: 51.12, lon: 71.43 },
+]
+
+export interface Service {
+  id: string
+  duration: number
+  price: number
+  popular?: boolean
+}
+
+// TODO: цены примерные, взять настоящий прайс у сестры
+export const services: Service[] = [
+  { id: 'gel', duration: 90, price: 8000, popular: true },
+  { id: 'hardware', duration: 60, price: 5000 },
+  { id: 'french', duration: 120, price: 10000 },
+  { id: 'extension', duration: 150, price: 14000 },
+  { id: 'pedicure', duration: 90, price: 10000 },
+  { id: 'kids', duration: 30, price: 3000 },
+  { id: 'paraffin', duration: 20, price: 2000 },
+]
+
+export type GalleryTag = 'nude' | 'french' | 'design' | 'bright' | 'pedicure'
+
+export interface GalleryItem {
+  file: string
+  tag: GalleryTag
+  // Размер маленькой версии: нужен, чтобы плитка заранее знала свои пропорции
+  w: number
+  h: number
+}
+
+// Работы сестры: public/works/<file>-640.webp и <file>-1400.webp
+export const gallery: GalleryItem[] = [
+  { file: '01-nude', tag: 'nude', w: 617, h: 640 },
+  { file: '02-design', tag: 'design', w: 640, h: 626 },
+  { file: '03-french', tag: 'french', w: 640, h: 618 },
+  { file: '04-bright', tag: 'bright', w: 482, h: 640 },
+  { file: '05-design', tag: 'design', w: 520, h: 640 },
+  { file: '06-pedicure', tag: 'pedicure', w: 640, h: 617 },
+  { file: '07-nude', tag: 'nude', w: 640, h: 638 },
+  { file: '08-design', tag: 'design', w: 540, h: 640 },
+  { file: '09-french', tag: 'french', w: 580, h: 640 },
+  { file: '10-bright', tag: 'bright', w: 640, h: 618 },
+  { file: '11-design', tag: 'design', w: 561, h: 640 },
+  { file: '12-nude', tag: 'nude', w: 533, h: 640 },
+  { file: '13-design', tag: 'design', w: 640, h: 626 },
+  { file: '14-french', tag: 'french', w: 640, h: 363 },
+  { file: '15-bright', tag: 'bright', w: 539, h: 640 },
+  { file: '16-design', tag: 'design', w: 640, h: 626 },
+  { file: '17-pedicure', tag: 'pedicure', w: 640, h: 560 },
+  { file: '18-french', tag: 'french', w: 500, h: 640 },
+  { file: '19-bright', tag: 'bright', w: 640, h: 453 },
+  { file: '20-design', tag: 'design', w: 640, h: 626 },
+  { file: '21-nude', tag: 'nude', w: 449, h: 640 },
+  { file: '22-design', tag: 'design', w: 469, h: 640 },
+  { file: '23-bright', tag: 'bright', w: 482, h: 640 },
+  { file: '24-design', tag: 'design', w: 640, h: 447 },
+]
+
+export const workSrc = (file: string, size: 640 | 1400 = 640) => `/works/${file}-${size}.webp`
+
+export const heroImages = {
+  main: '/works/hero-main.webp',
+  small: '/works/hero-small.webp',
+}
+
+export const faqKeys = ['wear', 'late', 'cancel', 'payment', 'kids'] as const
+export const whyKeys = ['natural', 'cuticle', 'painless', 'sterile'] as const

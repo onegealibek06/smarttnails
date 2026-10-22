@@ -1,0 +1,277 @@
+{
+  "seo": {
+    "title": "Smarttnails by Ardak Aldanazarova — manicure and pedicure in Astana",
+    "description": "Nail artist Ardak: natural manicure, gel polish, French tips, extensions and pedicure in Astana. Rated 5.0 on 2GIS. Book online in a minute."
+  },
+  "nav": {
+    "works": "Works",
+    "services": "Services",
+    "booking": "Booking",
+    "location": "Location",
+    "reviews": "Reviews",
+    "faq": "FAQ"
+  },
+  "cta": {
+    "book": "Book now",
+    "bookOnline": "Book online",
+    "seeWorks": "See my work",
+    "whatsapp": "WhatsApp"
+  },
+  "preloader": {
+    "tagline": "by Ardak Aldanazarova"
+  },
+  "header": {
+    "soundOn": "Turn music on",
+    "soundOff": "Turn music off",
+    "menu": "Open menu",
+    "close": "Close menu",
+    "language": "Site language"
+  },
+  "hero": {
+    "badge": "Now taking clients at: {place}",
+    "title1": "Nails you'll",
+    "titleAccent": "love",
+    "title2": "to show off",
+    "subtitle": "Natural results, flawless cuticles and zero pain. Nail artist Ardak, Smarttnails studio in Astana.",
+    "ratingLabel": "rating on 2GIS",
+    "hoursLabel": "every day",
+    "servicesLabel": "services",
+    "nearest": "Next available time",
+    "today": "today",
+    "tomorrow": "tomorrow",
+    "noFree": "See free times in booking"
+  },
+  "why": {
+    "eyebrow": "Why me",
+    "title": "Why clients {accent} coming back",
+    "accent": "keep",
+    "items": {
+      "natural": {
+        "title": "Natural",
+        "text": "A thin, neat finish that looks like your own well-kept nails."
+      },
+      "cuticle": {
+        "title": "Clean cuticles",
+        "text": "Careful prep with no hangnails, so your polish stays fresh for longer."
+      },
+      "painless": {
+        "title": "Painless",
+        "text": "Gentle e-file manicure: no cuts, no discomfort."
+      },
+      "sterile": {
+        "title": "Sterile",
+        "text": "Tools are fully sterilised and opened from a sealed pouch in front of you."
+      }
+    }
+  },
+  "gallery": {
+    "eyebrow": "Portfolio",
+    "title": "My {accent}",
+    "accent": "work",
+    "all": "All",
+    "tags": {
+      "nude": "Nude",
+      "french": "French",
+      "design": "Nail art",
+      "bright": "Bold colours",
+      "pedicure": "Pedicure"
+    },
+    "more": "More work on Instagram",
+    "open": "Open photo",
+    "close": "Close",
+    "prev": "Previous photo",
+    "next": "Next photo",
+    "alt": "Smarttnails nail work: {tag}",
+    "hint": "Hover or tap to pause the feed",
+    "grid": "All photos as a grid",
+    "marquee": "Live feed"
+  },
+  "services": {
+    "eyebrow": "Prices",
+    "title": "Services and {accent}",
+    "accent": "prices",
+    "subtitle": "Pick several services at once — time and price are calculated for you.",
+    "minutes": "{n} min",
+    "price": "{price} ₸",
+    "popular": "Popular",
+    "choose": "Choose",
+    "chosen": "Chosen",
+    "items": {
+      "gel": {
+        "name": "Manicure + gel polish",
+        "desc": "E-file manicure, nail levelling and long-lasting single-colour gel."
+      },
+      "hardware": {
+        "name": "Manicure, no polish",
+        "desc": "E-file cuticle care, shaping, treatment and oil."
+      },
+      "french": {
+        "name": "Manicure + French",
+        "desc": "Classic or coloured French in any shape, from soft square to almond."
+      },
+      "extension": {
+        "name": "Gel extensions",
+        "desc": "Length and shape of your choice, polish and design included."
+      },
+      "pedicure": {
+        "name": "Pedicure with gel polish",
+        "desc": "Foot and toe care finished with gel polish."
+      },
+      "kids": {
+        "name": "Kids' manicure",
+        "desc": "Gentle care with no e-file and no filing on the skin."
+      },
+      "paraffin": {
+        "name": "Paraffin hand bath",
+        "desc": "Deep moisture and soft skin. The perfect add-on to any manicure."
+      }
+    }
+  },
+  "booking": {
+    "eyebrow": "Online booking",
+    "title": "Book {accent}",
+    "accent": "in a minute",
+    "subtitle": "No calls, no back-and-forth: pick your services and a time that suits you.",
+    "steps": {
+      "services": "Services",
+      "time": "Date and time",
+      "contacts": "Details"
+    },
+    "pickService": "Choose at least one service",
+    "total": "Total",
+    "duration": "Duration",
+    "pickDate": "Choose a day",
+    "pickTime": "Available times",
+    "noSlots": "No free time on this day — please choose another one.",
+    "pickTimeError": "Choose a time",
+    "addressForDay": "Address for this day",
+    "name": "Your name",
+    "namePlaceholder": "Aigerim",
+    "phone": "Phone",
+    "phonePlaceholder": "+7 7__ ___ __ __",
+    "comment": "Wishes",
+    "commentPlaceholder": "For example: nude, short almond shape",
+    "remind": "Remind me on Telegram the day before",
+    "errors": {
+      "name": "Enter your name",
+      "phone": "Enter the full number: +7 and 10 digits"
+    },
+    "next": "Next",
+    "back": "Back",
+    "submit": "Book",
+    "summary": "{services} · {duration}",
+    "success": {
+      "title": "You're booked!",
+      "text": "See you on {date} at {time}.",
+      "addCalendar": "Add to calendar",
+      "writeMaster": "Message Ardak",
+      "again": "New booking"
+    },
+    "my": "My bookings",
+    "cancel": "Cancel",
+    "toastBooked": "Booking confirmed: {date}, {time}",
+    "toastMaster": "Ardak has been notified about your booking",
+    "toastCancelled": "Booking cancelled — the slot is free again",
+    "whatsappText": "Hi! I booked on your website for {date} at {time}: {services}.",
+    "calendarTitle": "Nails at Smarttnails"
+  },
+  "duration": {
+    "minutes": "{m} min",
+    "hours": "{h} h",
+    "hoursMinutes": "{h} h {m} min"
+  },
+  "location": {
+    "eyebrow": "Getting here",
+    "title": "Where I am {accent}",
+    "accent": "now",
+    "hours": "Every day 09:00–22:00",
+    "transport": "Mailin bus stop — 3 minutes on foot, parking nearby",
+    "open2gis": "Open in 2GIS",
+    "note": "I sometimes change studios. When you book, you always see the address for your exact day, and if I move I'll send you the new address in advance.",
+    "moving": "From {date} I'm at a new address: {address}",
+    "map": "Map: Smarttnails studio"
+  },
+  "reviews": {
+    "eyebrow": "Reviews",
+    "title": "What clients {accent} about Ardak's nails",
+    "accent": "say",
+    "rating": "{count} ratings on 2GIS",
+    "of5": "/ 5",
+    "trusted": "Trusted by clients",
+    "all": "All reviews on 2GIS",
+    "readMore": "Read more",
+    "readLess": "Show less",
+    "original": "Review in Russian",
+    "prev": "Previous review",
+    "next": "Next review",
+    "goTo": "Show review {n}",
+    "stars": "Rated {n} out of 5",
+    "comment": "Comment"
+  },
+  "training": {
+    "eyebrow": "Training",
+    "title": "Want to become a {accent}?",
+    "accent": "nail artist",
+    "text": "Courses for beginners and salon artists: e-file manicure, levelling, French. Small groups and lots of practice.",
+    "cta": "Ask about training",
+    "whatsappText": "Hi! I'd like to know more about your nail training."
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Frequently asked {accent}",
+    "accent": "questions",
+    "items": {
+      "wear": {
+        "q": "How long does the polish last?",
+        "a": "Usually 3–4 weeks. I recommend a refill every 3 weeks so your nails always look fresh."
+      },
+      "late": {
+        "q": "What if I'm running late?",
+        "a": "Message me on WhatsApp. Up to 15 minutes late is fine. Any later and we may need to reschedule or shorten the service."
+      },
+      "cancel": {
+        "q": "How do I cancel or reschedule?",
+        "a": "In “My bookings” on this site or via WhatsApp — please at least 3 hours in advance."
+      },
+      "payment": {
+        "q": "How can I pay?",
+        "a": "Cash, card transfer or QR code."
+      },
+      "kids": {
+        "q": "Do you do kids' manicures?",
+        "a": "Yes — gently, with no e-file on the skin. Kids are welcome to come with a parent."
+      }
+    }
+  },
+  "footer": {
+    "tagline": "Manicure and pedicure in Astana. Natural, neat, painless.",
+    "menu": "Menu",
+    "contacts": "Contacts",
+    "follow": "Social",
+    "formTitle": "Have a question? Write — Ardak will reply",
+    "name": "Name",
+    "namePlaceholder": "Aigerim",
+    "phone": "WhatsApp",
+    "phonePlaceholder": "+7 7__ ___ __ __",
+    "message": "Message",
+    "messagePlaceholder": "For example: French tips for a wedding on 12 November",
+    "send": "Send",
+    "sending": "Sending…",
+    "sent": "Message sent. Ardak will reply to you on WhatsApp soon.",
+    "notConfigured": "Sending from the site is still being set up. Tap to send this message on WhatsApp:",
+    "openWhatsapp": "Open WhatsApp",
+    "error": "Couldn't send. Please try again or message on WhatsApp.",
+    "errors": {
+      "name": "Enter your name",
+      "phone": "Enter the full number: +7 and 10 digits"
+    },
+    "consent": "By tapping “Send”, you agree that Ardak may contact you on this number.",
+    "toTop": "Back to top",
+    "rights": "© {year} Smarttnails by Ardak Aldanazarova. All rights reserved.",
+    "madeBy": "Design and development —",
+    "whatsappText": "Hi! My name is {name}. {message}"
+  },
+  "toast": {
+    "close": "Close notification"
+  }
+}

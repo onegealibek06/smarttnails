@@ -6,8 +6,9 @@ import { salon } from '~/data/salon'
 const { t } = useI18n()
 const preloaderDone = useState('preloader:done', () => false)
 
-// Три фото сменяют друг друга с плавным наплывом; в активном — медленный «наезд камеры»
-const slides = ['/hero/slide-1.webp', '/hero/slide-2.webp', '/hero/slide-3.webp']
+// Фото для первого экрана — те, что выбрала она (имя файла = время скриншота).
+// Сменяют друг друга с плавным наплывом; в активном — медленный «наезд камеры»
+const slides = ['1203-52', '1205-26', '1205-38', '1207-58', '1211-40', '1213-23'].map(name => `/hero/${name}.webp`)
 const SLIDE_MS = 5500
 const current = ref(0)
 

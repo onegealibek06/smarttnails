@@ -43,21 +43,21 @@
     "title": "Why clients {accent} coming back",
     "accent": "keep",
     "items": {
-      "natural": {
-        "title": "Natural",
-        "text": "A thin, neat finish that looks like your own well-kept nails."
-      },
-      "cuticle": {
-        "title": "Clean cuticles",
-        "text": "Careful prep with no hangnails, so your polish stays fresh for longer."
-      },
-      "painless": {
-        "title": "Painless",
-        "text": "Gentle e-file manicure: no cuts, no discomfort."
+      "experience": {
+        "title": "8 years of experience",
+        "text": "Deep experience in the nail industry: I find the right approach for every client and handle any task — from simple to the most complex nails."
       },
       "sterile": {
-        "title": "Sterile",
-        "text": "Tools are fully sterilised and opened from a sealed pouch in front of you."
+        "title": "Safety and cleanliness",
+        "text": "I carefully keep my tools sterile and my workspace spotless — a guarantee of your health."
+      },
+      "speed": {
+        "title": "Speed and quality",
+        "text": "A clean combined or e-file manicure, without wasting your time."
+      },
+      "premium": {
+        "title": "Premium materials",
+        "text": "Premium-class materials and a technique proven over the years — with care for every client."
       }
     }
   },

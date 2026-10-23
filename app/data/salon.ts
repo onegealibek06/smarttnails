@@ -101,8 +101,25 @@ export interface GalleryItem {
   h: number
 }
 
-// Работы сестры: public/works/<file>-640.webp и <file>-1400.webp
+// Работы сестры: public/works/<file>-640.webp и <file>-1400.webp.
+// Сначала снимки с телефона (23.10, они чётче), потом скриншоты из Instagram
 export const gallery: GalleryItem[] = [
+  { file: '25-bright', tag: 'bright', w: 640, h: 480 },
+  { file: '26-nude', tag: 'nude', w: 480, h: 640 },
+  { file: '27-bright', tag: 'bright', w: 640, h: 481 },
+  { file: '28-french', tag: 'french', w: 480, h: 640 },
+  { file: '29-design', tag: 'design', w: 480, h: 640 },
+  { file: '30-design', tag: 'design', w: 480, h: 640 },
+  { file: '31-nude', tag: 'nude', w: 480, h: 640 },
+  { file: '32-bright', tag: 'bright', w: 480, h: 640 },
+  { file: '33-nude', tag: 'nude', w: 480, h: 640 },
+  { file: '34-design', tag: 'design', w: 640, h: 480 },
+  { file: '35-nude', tag: 'nude', w: 480, h: 640 },
+  { file: '36-nude', tag: 'nude', w: 640, h: 640 },
+  { file: '37-french', tag: 'french', w: 480, h: 640 },
+  { file: '38-design', tag: 'design', w: 480, h: 640 },
+  { file: '39-design', tag: 'design', w: 485, h: 640 },
+  { file: '40-nude', tag: 'nude', w: 389, h: 640 },
   { file: '01-nude', tag: 'nude', w: 617, h: 640 },
   { file: '02-design', tag: 'design', w: 640, h: 626 },
   { file: '03-french', tag: 'french', w: 640, h: 618 },

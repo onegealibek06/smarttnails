@@ -3,7 +3,7 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 
 // top — это первый экран («Главная»)
-const links = ['top', 'works', 'services', 'booking', 'location', 'reviews'] as const
+const links = ['top', 'about', 'works', 'services', 'booking', 'location', 'reviews'] as const
 const label = (link: (typeof links)[number]) => t(link === 'top' ? 'nav.home' : `nav.${link}`)
 
 const menuOpen = ref(false)

@@ -38,6 +38,7 @@ useHead({
     <main>
       <HeroSection />
       <WhySection />
+      <AboutSection />
       <GallerySection />
       <ServicesSection />
       <BookingSection />

@@ -5,6 +5,7 @@
   },
   "nav": {
     "home": "Home",
+    "about": "About",
     "works": "Works",
     "services": "Services",
     "booking": "Booking",
@@ -270,5 +271,19 @@
   },
   "toast": {
     "close": "Close notification"
+  },
+  "about": {
+    "eyebrow": "About me",
+    "title": "Creativity is my {accent}",
+    "accent": "inspiration",
+    "quote": "For me it isn't work — it's the joy of creating beauty.",
+    "p1": "My name is Ardak Aldanazarova. My journey in nails began in 2017. For creative people there's no limit to perfection, and I find inspiration everywhere — in colour, in shape, in every client's mood.",
+    "p2": "After maternity leave I took a break and even got into numerology. But my love of creating and my loyal clients didn't let me leave what I love — and now I'm back with fresh energy.",
+    "p3": "I'm running my professional blog again, sharing new work and nail-care secrets. I'd be glad to have your follows and support.",
+    "cta": "Follow on Instagram",
+    "since": "the year my journey began",
+    "years": "years in the nail industry",
+    "rating": "rating on 2GIS",
+    "photoAlt": "Nail artist Ardak Aldanazarova"
   }
 }

@@ -6,7 +6,7 @@ const { lang } = useLang()
 const loc = computed(() => locationFor(toISODate(new Date())))
 const year = new Date().getFullYear()
 
-const links = ['works', 'services', 'booking', 'location', 'reviews', 'faq'] as const
+const links = ['about', 'works', 'services', 'booking', 'location', 'reviews', 'faq'] as const
 
 const socials = [
   { label: 'Instagram', href: salon.instagram, icon: 'M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm5 5a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm5.5-2.5h.01' },

@@ -222,28 +222,9 @@
     "menu": "Menu",
     "contacts": "Contacts",
     "follow": "Social",
-    "formTitle": "Have a question? Write — Ardak will reply",
-    "name": "Name",
-    "namePlaceholder": "Aigerim",
-    "phone": "WhatsApp",
-    "phonePlaceholder": "+7 7__ ___ __ __",
-    "message": "Message",
-    "messagePlaceholder": "For example: French tips for a wedding on 12 November",
-    "send": "Send",
-    "sending": "Sending…",
-    "sent": "Message sent. Ardak will reply to you on WhatsApp soon.",
-    "notConfigured": "Sending from the site is still being set up. Tap to send this message on WhatsApp:",
-    "openWhatsapp": "Open WhatsApp",
-    "error": "Couldn't send. Please try again or message on WhatsApp.",
-    "errors": {
-      "name": "Enter your name",
-      "phone": "Enter the full number: +7 and 10 digits"
-    },
-    "consent": "By tapping “Send”, you agree that Ardak may contact you on this number.",
     "toTop": "Back to top",
     "rights": "© {year} Smarttnails by Ardak Aldanazarova. All rights reserved.",
-    "madeBy": "Design and development —",
-    "whatsappText": "Hi! I'm writing from the Smarttnails website. My name is {name}. {message}"
+    "madeBy": "Design and development —"
   },
   "toast": {
     "close": "Close notification"

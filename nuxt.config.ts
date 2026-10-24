@@ -8,14 +8,6 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  // Куда приходят сообщения из формы в подвале. Значения берутся из .env (см. .env.example)
-  runtimeConfig: {
-    telegramBotToken: '',
-    telegramChatId: '',
-    resendApiKey: '',
-    contactEmail: '',
-  },
-
   vite: {
     plugins: [tailwindcss()],
   },

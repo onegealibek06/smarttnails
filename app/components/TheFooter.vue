@@ -63,7 +63,7 @@ onBeforeUnmount(() => observer?.disconnect())
     </svg>
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-      <div class="grid grid-cols-[minmax(0,1fr)] gap-12 sm:grid-cols-2 lg:grid-cols-[1.1fr_0.7fr_0.8fr_1.6fr] lg:gap-10">
+      <div class="grid grid-cols-[minmax(0,1fr)] gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-10">
         <div>
           <SiteLogo class="text-[2rem]" />
           <p class="mt-1 font-accent text-lg italic text-plum">{{ salon.signature }}</p>
@@ -102,12 +102,6 @@ onBeforeUnmount(() => observer?.disconnect())
           </address>
         </div>
 
-        <div class="sm:col-span-2 lg:col-span-1">
-          <h2 class="max-w-md text-xl font-semibold leading-snug tracking-tight sm:text-2xl">{{ t('footer.formTitle') }}</h2>
-          <div class="mt-5">
-            <ContactForm />
-          </div>
-        </div>
       </div>
     </div>
 

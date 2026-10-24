@@ -6,3 +6,6 @@ node_modules
 dist
 .DS_Store
 .wrangler
+
+# Личные заметки — только на компьютере, не в репозитории
+docs/messages-for-ardak.md

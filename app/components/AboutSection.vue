@@ -1,157 +1,247 @@
 <script setup lang="ts">
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { salon } from '~/data/salon'
 
-const { t } = useI18n()
+const { t, tm, rt } = useI18n()
 const { lang } = useLang()
-const rating = computed(() => salon.rating.toFixed(1).replace('.', lang.value === 'en' ? '.' : ','))
 
-// armed — фото спрятано и ждёт появления; shown — секция на экране, фото раскрывается снизу вверх.
-// Без JavaScript ни один класс не ставится, и фото просто видно.
-const photo = ref<HTMLElement>()
+const ticker = computed(() => (tm('about.ticker') as unknown[]).map(word => rt(word as Parameters<typeof rt>[0])))
+const handle = salon.instagramHandle
+
+// Плитки появляются по очереди, цифры «набегают». armed — всё спрятано и ждёт; shown — секция на экране.
+// Без JavaScript классы не ставятся, и всё просто видно.
+const root = ref<HTMLElement>()
 const armed = ref(false)
 const shown = ref(false)
+const years = ref(8)
+const rating = ref(salon.rating)
+const ratingText = computed(() => rating.value.toFixed(1).replace('.', lang.value === 'en' ? '.' : ','))
+
 let observer: IntersectionObserver | undefined
+let ctx: gsap.Context | undefined
+
+function countUp() {
+  const start = performance.now()
+  const tick = (now: number) => {
+    const p = Math.min(1, (now - start) / 1400)
+    const eased = 1 - (1 - p) ** 3
+    years.value = Math.round(8 * eased)
+    rating.value = salon.rating * eased
+    if (p < 1) requestAnimationFrame(tick)
+  }
+  requestAnimationFrame(tick)
+}
 
 onMounted(() => {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !photo.value) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !root.value) return
   armed.value = true
+  years.value = 0
+  rating.value = 0
+
   observer = new IntersectionObserver(([entry]) => {
     if (!entry!.isIntersecting) return
     shown.value = true
+    countUp()
     observer?.disconnect()
-  }, { threshold: 0.25 })
-  observer.observe(photo.value)
+  }, { threshold: 0.2 })
+  observer.observe(root.value)
+
+  // Фото чуть медленнее прокрутки — лёгкая глубина
+  gsap.registerPlugin(ScrollTrigger)
+  ctx = gsap.context(() => {
+    gsap.fromTo('[data-photo-img]', { yPercent: -6 }, {
+      yPercent: 6,
+      ease: 'none',
+      scrollTrigger: { trigger: '[data-photo]', start: 'top bottom', end: 'bottom top', scrub: true },
+    })
+  }, root.value)
 })
 
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  ctx?.revert()
+})
 </script>
 
 <template>
-  <section id="about" data-bg="#F7EFEA" class="relative overflow-x-clip py-20 sm:py-28">
-    <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-16 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20 lg:px-10">
-      <!-- Фото в арке: розовое свечение позади, вращающаяся подпись и плашка «2017» -->
-      <div ref="photo" class="about-photo relative mx-auto w-full max-w-[440px]" :class="{ armed, shown }">
-        <div class="pointer-events-none absolute -inset-8 rounded-full bg-rose/35 blur-3xl" aria-hidden="true" />
-        <div class="pointer-events-none absolute -bottom-10 -right-10 h-48 w-48 rounded-full bg-lilac blur-3xl" aria-hidden="true" />
-
-        <div data-photo class="arch relative aspect-[4/5] border-[6px] border-white bg-blush shadow-[0_40px_80px_-40px_rgba(123,45,99,0.55)]">
-          <img
-            src="/about/ardak-1000.webp"
-            srcset="/about/ardak-600.webp 480w, /about/ardak-1000.webp 760w"
-            sizes="(min-width: 1024px) 440px, 90vw"
-            :alt="t('about.photoAlt')"
-            width="760"
-            height="950"
-            loading="lazy"
-            class="h-full w-full object-cover"
-          >
+  <section id="about" ref="root" data-bg="#F7EFEA" class="about relative overflow-x-clip py-20 sm:py-28" :class="{ armed, shown }">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+      <div class="grid grid-cols-[minmax(0,1fr)] gap-3 sm:gap-4 lg:grid-cols-12">
+        <!-- Заголовок и цитата -->
+        <div class="tile lg:col-span-7 lg:pb-6" style="--d: 0">
+          <p class="eyebrow">
+            <span class="h-px w-6 bg-current" aria-hidden="true" />
+            {{ t('about.eyebrow') }}
+          </p>
+          <i18n-t keypath="about.title" tag="h2" class="mt-4 text-[clamp(2.4rem,5.4vw,4.6rem)] font-semibold leading-[1.02] tracking-[-0.045em]" scope="global">
+            <template #accent>
+              <span class="accent text-[1.1em]">{{ t('about.accent') }}</span>
+            </template>
+          </i18n-t>
+          <p class="mt-6 max-w-xl text-xl leading-snug tracking-tight text-ink-soft sm:text-2xl">
+            <span class="mr-1 font-accent text-4xl leading-none text-rose-deep" aria-hidden="true">“</span>{{ t('about.quote') }}
+          </p>
         </div>
 
-        <svg class="ring absolute -right-3 -top-3 h-28 w-28 text-plum sm:-right-8 sm:-top-6 sm:h-32 sm:w-32" viewBox="0 0 120 120" aria-hidden="true">
-          <defs><path id="about-ring" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1-92 0" /></defs>
-          <circle cx="60" cy="60" r="58" fill="#FFF7F5" />
-          <text font-size="9" font-weight="600" fill="currentColor"><textPath href="#about-ring" textLength="286" lengthAdjust="spacing">SMARTTNAILS · BY ARDAK ALDANAZAROVA ·</textPath></text>
-          <path d="M60 44c4.5 0 6.5 6.5 6.5 11v8.5c0 2.8-1.8 4.5-4.5 4.5h-4c-2.7 0-4.5-1.7-4.5-4.5V55c0-4.5 2-11 6.5-11z" fill="#EE9BB8" />
-        </svg>
+        <!-- Фото: большая скруглённая плитка, сверху статус, снизу «стеклянная» подпись -->
+        <figure data-photo class="tile relative overflow-hidden rounded-[32px] bg-blush lg:col-span-5 lg:row-span-3" style="--d: 1">
+          <div class="relative aspect-[4/5] h-full w-full lg:aspect-auto lg:min-h-full">
+            <img
+              data-photo-img
+              src="/about/ardak-1000.webp"
+              srcset="/about/ardak-600.webp 480w, /about/ardak-1000.webp 760w"
+              sizes="(min-width: 1024px) 40vw, 92vw"
+              :alt="t('about.photoAlt')"
+              width="760"
+              height="950"
+              loading="lazy"
+              class="photo-img absolute inset-0 h-[112%] w-full object-cover"
+            >
+          </div>
+          <span class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pl-2.5 pr-3.5 text-xs font-semibold backdrop-blur">
+            <span class="relative flex h-2 w-2">
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#25D366] opacity-70" />
+              <span class="relative inline-flex h-2 w-2 rounded-full bg-[#25D366]" />
+            </span>
+            {{ t('about.status') }}
+          </span>
+          <figcaption class="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-[24px] bg-white/70 px-5 py-4 backdrop-blur-xl">
+            <span>
+              <span class="block text-lg font-semibold tracking-tight">{{ salon.owner }}</span>
+              <span class="block text-xs text-ink-soft">{{ t('about.role') }}</span>
+            </span>
+            <span class="flex items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-sm font-semibold text-milk">
+              {{ ratingText }}
+              <svg width="13" height="13" viewBox="0 0 20 20" class="text-rose" aria-hidden="true"><path fill="currentColor" d="m10 1.8 2.5 5.3 5.8.7-4.3 4 1.1 5.7L10 14.7l-5.1 2.8L6 11.8l-4.3-4 5.8-.7z" /></svg>
+            </span>
+          </figcaption>
+        </figure>
 
-        <div class="float-card absolute -bottom-6 left-0 rounded-3xl bg-white/90 px-5 py-4 shadow-[0_24px_50px_-24px_rgba(123,45,99,0.5)] backdrop-blur sm:-left-8">
-          <p class="text-3xl font-semibold tracking-tight">2017</p>
-          <p class="mt-0.5 max-w-[9rem] text-xs leading-snug text-ink-soft">{{ t('about.since') }}</p>
+        <!-- История -->
+        <div class="tile rounded-[32px] bg-white/65 p-6 backdrop-blur sm:p-8 lg:col-span-7" style="--d: 2">
+          <div class="space-y-4 leading-relaxed text-ink-soft sm:text-[1.05rem]">
+            <p>{{ t('about.p1') }}</p>
+            <p>{{ t('about.p2') }}</p>
+            <p>{{ t('about.p3') }}</p>
+          </div>
+        </div>
+
+        <!-- Цифры и Instagram -->
+        <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:col-span-7 lg:grid-cols-[1fr_1fr_1.4fr]">
+          <div class="tile rounded-[28px] bg-white/65 p-5 backdrop-blur sm:p-6" style="--d: 3">
+            <p class="text-[2.6rem] font-semibold leading-none tracking-[-0.05em] text-plum sm:text-5xl">2017</p>
+            <p class="mt-2 text-xs leading-snug text-ink-soft sm:text-sm">{{ t('about.since') }}</p>
+          </div>
+          <div class="tile rounded-[28px] bg-rose/45 p-5 backdrop-blur sm:p-6" style="--d: 4">
+            <p class="text-[2.6rem] font-semibold leading-none tracking-[-0.05em] tabular-nums sm:text-5xl">{{ years }}</p>
+            <p class="mt-2 text-xs leading-snug text-ink sm:text-sm">{{ t('about.years') }}</p>
+          </div>
+          <a
+            :href="salon.instagram"
+            target="_blank"
+            rel="noopener"
+            class="tile insta group col-span-2 flex items-end justify-between gap-4 rounded-[28px] bg-ink p-5 text-milk transition-colors duration-500 hover:bg-plum sm:p-6 lg:col-span-1"
+            style="--d: 5"
+          >
+            <span>
+              <span class="block text-xs text-milk/60">{{ t('about.insta') }}</span>
+              <span class="mt-1 block text-lg font-semibold tracking-tight">{{ handle }}</span>
+              <span class="mt-3 inline-block text-sm font-semibold text-rose">{{ t('about.cta') }}</span>
+            </span>
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rose text-ink transition-transform duration-500 group-hover:-rotate-45" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </span>
+          </a>
         </div>
       </div>
+    </div>
 
-      <div>
-        <SectionHeading v-reveal :eyebrow="t('about.eyebrow')" title-key="about.title" accent-key="about.accent" />
-
-        <blockquote v-reveal class="mt-8 border-l-2 border-rose pl-5 font-accent text-2xl italic leading-snug text-plum sm:text-3xl">
-          {{ t('about.quote') }}
-        </blockquote>
-
-        <div class="mt-6 space-y-4 text-lg leading-relaxed text-ink-soft">
-          <p v-reveal>{{ t('about.p1') }}</p>
-          <p v-reveal>{{ t('about.p2') }}</p>
-          <p v-reveal>{{ t('about.p3') }}</p>
-        </div>
-
-        <dl v-reveal class="mt-8 grid max-w-md grid-cols-2 gap-3">
-          <div class="rounded-3xl bg-white/70 px-5 py-4 backdrop-blur">
-            <dt class="sr-only">{{ t('about.years') }}</dt>
-            <dd class="text-3xl font-semibold tracking-tight">8</dd>
-            <dd class="mt-0.5 text-xs text-ink-soft">{{ t('about.years') }}</dd>
-          </div>
-          <div class="rounded-3xl bg-white/70 px-5 py-4 backdrop-blur">
-            <dt class="sr-only">{{ t('about.rating') }}</dt>
-            <dd class="flex items-center gap-1.5 text-3xl font-semibold tracking-tight">
-              {{ rating }}
-              <svg width="18" height="18" viewBox="0 0 20 20" class="text-rose-deep" aria-hidden="true"><path fill="currentColor" d="m10 1.8 2.5 5.3 5.8.7-4.3 4 1.1 5.7L10 14.7l-5.1 2.8L6 11.8l-4.3-4 5.8-.7z" /></svg>
-            </dd>
-            <dd class="mt-0.5 text-xs text-ink-soft">{{ t('about.rating') }}</dd>
-          </div>
-        </dl>
-
-        <div v-reveal class="mt-9 flex flex-wrap items-center gap-x-8 gap-y-5">
-          <a :href="salon.instagram" target="_blank" rel="noopener" class="btn btn-primary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" /></svg>
-            {{ t('about.cta') }}
-          </a>
-          <p class="font-accent text-3xl italic text-rose-deep" aria-hidden="true">{{ salon.owner }}</p>
-        </div>
+    <!-- Бегущая строка из ключевых слов -->
+    <div class="ticker mt-14 sm:mt-20" aria-hidden="true">
+      <div class="ticker-track">
+        <template v-for="copy in 2" :key="copy">
+          <span v-for="(word, i) in ticker" :key="`${copy}-${i}`" class="ticker-item">
+            <span :class="i % 2 ? 'ticker-outline' : 'accent'">{{ word }}</span>
+            <span class="text-rose" aria-hidden="true">✦</span>
+          </span>
+        </template>
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
-.ring {
-  animation: spin 24s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.float-card {
-  animation: float 6s ease-in-out infinite alternate;
-}
-
-@keyframes float {
-  from {
-    transform: translateY(-6px);
-  }
-  to {
-    transform: translateY(6px);
-  }
-}
-
-/* Фото раскрывается снизу вверх и чуть отдаляется, плашки появляются следом */
-.armed [data-photo] {
-  clip-path: inset(100% 0 0 0 round 999px 999px 28px 28px);
-}
-
-.armed [data-photo] img {
-  transform: scale(1.18);
-}
-
-.armed .ring,
-.armed .float-card {
+/* Появление плиток по очереди: снизу, из лёгкого размытия */
+.armed .tile {
   opacity: 0;
+  transform: translateY(28px) scale(0.98);
+  filter: blur(6px);
 }
 
-.shown [data-photo] {
-  clip-path: inset(0 0 0 0 round 999px 999px 28px 28px);
-  transition: clip-path 1.4s var(--ease-soft);
+.shown .tile {
+  animation: tile-in 0.9s calc(var(--d) * 110ms) var(--ease-soft) forwards;
 }
 
-.shown [data-photo] img {
-  transform: scale(1);
-  transition: transform 2s var(--ease-soft);
+@keyframes tile-in {
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
 }
 
-.shown .ring,
-.shown .float-card {
-  opacity: 1;
-  transition: opacity 0.8s 0.9s;
+.photo-img {
+  top: -6%;
+}
+
+.insta {
+  min-height: 150px;
+}
+
+.ticker {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker 38s linear infinite;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.6rem;
+  padding-right: 1.6rem;
+  font-size: clamp(2.4rem, 7vw, 5.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.ticker-item .accent {
+  font-size: 1.1em;
+}
+
+/* Контурные слова — модно и легко */
+.ticker-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--color-plum);
+}
+
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none !important;
+  }
 }
 </style>

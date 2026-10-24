@@ -45,20 +45,20 @@
     "accent": "keep",
     "items": {
       "experience": {
-        "title": "8 years of experience",
-        "text": "Deep experience in the nail industry: I find the right approach for every client and handle any task — from simple to the most complex nails."
+        "title": "8 years of continuous practice",
+        "text": "I know the specifics of every type of nail plate and work with all kinds of nail sculpting and restoration."
       },
-      "sterile": {
-        "title": "Safety and cleanliness",
-        "text": "I carefully keep my tools sterile and my workspace spotless — a guarantee of your health."
+      "details": {
+        "title": "Professionalism in the details",
+        "text": "I have mastered combined and e-file manicure techniques, and create perfect levelling and strong extensions on dual forms."
       },
-      "speed": {
-        "title": "Speed and quality",
-        "text": "A clean combined or e-file manicure, without wasting your time."
+      "smartPedicure": {
+        "title": "Smart pedicure",
+        "text": "I take care of the health of your feet with advanced, safe techniques."
       },
-      "premium": {
-        "title": "Premium materials",
-        "text": "Premium-class materials and a technique proven over the years — with care for every client."
+      "care": {
+        "title": "Care and safety",
+        "text": "I use only high-quality, proven hard and soft gels, and every tool goes through strict multi-stage sterilisation."
       }
     }
   },
@@ -227,10 +227,14 @@
   },
   "about": {
     "eyebrow": "About me",
-    "title": "Creativity is my {accent}",
-    "accent": "inspiration",
-    "quote": "For me it isn't work — it's the joy of creating beauty.",
-    "p1": "My name is Ardak Aldanazarova. My journey in nails began in 2017. For creative people there's no limit to perfection, and I find inspiration everywhere — in colour, in shape, in every client's mood.",
+    "title": "Beauty is in the {accent}",
+    "accent": "details",
+    "quote": "My goal isn’t just a beautiful finish — it’s to give you confidence, comfort and a flawless result that lasts.",
+    "p1": "Hello! I’m Ardak, a professional nail technician with 8 years of experience.",
+    "p2": "I believe beauty lies in the details and in minimalism. Whether you love delicate pastel shades, a clean, neat manicure with nothing extra, or strong, elegant extensions — I’ll create a look that highlights your individuality.",
+    "p3": "Every visit is a blend of high-level service, an honest approach to my craft and genuine care for your beauty. I’d be happy to welcome you among my regular clients!",
+    "more": "Read more",
+    "less": "Show less",
     "cta": "Follow on Instagram",
     "since": "the year my journey began",
     "years": "years in the nail industry",

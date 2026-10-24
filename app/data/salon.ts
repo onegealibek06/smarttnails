@@ -147,4 +147,4 @@ export const workSrc = (file: string, size: 640 | 1400 = 640) => `/works/${file}
 
 export const faqKeys = ['wear', 'late', 'kids', 'techniques'] as const
 // Пункты «За что меня любят» — по тексту Ардак (23.10)
-export const whyKeys = ['experience', 'sterile', 'speed', 'premium'] as const
+export const whyKeys = ['experience', 'details', 'smartPedicure', 'care'] as const

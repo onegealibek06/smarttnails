@@ -13,7 +13,8 @@ useHead({
       '@context': 'https://schema.org',
       '@type': 'NailSalon',
       'name': salon.brand,
-      'alternateName': `${salon.brand} ${salon.signature}`,
+      // Как ещё пишут название в поиске
+      'alternateName': ['Smart Nails', 'Smartt Nails', `${salon.brand} ${salon.signature}`],
       'founder': { '@type': 'Person', 'name': salon.owner },
       'telephone': salon.phone,
       'address': {

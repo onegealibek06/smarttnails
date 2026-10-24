@@ -20,12 +20,24 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
+  nitro: {
+    prerender: {
+      // Карта сайта и robots.txt собираются вместе со страницами
+      routes: ['/sitemap.xml', '/robots.txt'],
+      // kk.html вместо kk/index.html: Cloudflare отдаёт /kk без переадресации на /kk/,
+      // и адрес совпадает с canonical и hreflang
+      autoSubfolderIndex: false,
+    },
+  },
+
   app: {
     head: {
       htmlAttrs: { lang: 'ru' },
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'theme-color', content: '#FFF7F5' },
+        // Подтверждение сайта в Google Search Console
+        { name: 'google-site-verification', content: 'QFq7kEeeGFMwI1GEa_7uhMLoLn1mEXNpP-9naXlUtr8' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },

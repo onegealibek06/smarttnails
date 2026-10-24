@@ -7,7 +7,8 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "deploy": "NUXT_PUBLIC_SITE_URL=https://smarttnails.pages.dev nuxt generate && npx --yes wrangler@4 pages deploy .output/public --project-name smarttnails --branch main"
   },
   "dependencies": {
     "@nuxtjs/i18n": "^10.6.0",

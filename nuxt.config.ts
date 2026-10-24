@@ -36,8 +36,9 @@ export default defineNuxtConfig({
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'theme-color', content: '#FFF7F5' },
-        // Подтверждение сайта в Google Search Console
+        // Подтверждение сайта в Google Search Console и Яндекс Вебмастере
         { name: 'google-site-verification', content: 'QFq7kEeeGFMwI1GEa_7uhMLoLn1mEXNpP-9naXlUtr8' },
+        { name: 'yandex-verification', content: 'f8dce3507dcec4f6' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },

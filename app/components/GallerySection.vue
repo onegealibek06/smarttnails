@@ -145,8 +145,8 @@ function setupMotion() {
   }, marquee.value)
 }
 
-// Ждём, пока закончится смена ленты/сетки (переход 0,3 с), и только потом запускаем движение новых рядов
-watch([view, filter], () => setTimeout(setupMotion, 400))
+// Движение новых рядов запускается в @after-enter у Transition: при смене фильтра (mode out-in)
+// новая лента появляется только после ухода старой, и раньше цепляться не к чему
 
 onMounted(() => {
   window.addEventListener('keydown', onKey)
@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="works" data-bg="#FBEEF3" class="relative overflow-x-clip py-20 sm:py-28">
+  <section id="works" data-bg="#FBEEF3" class="section relative overflow-x-clip">
     <!-- Размытые розовые блики медленно плавают за лентой -->
     <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       <span class="bokeh left-[6%] top-[38%] h-64 w-64 bg-rose/30" style="animation-duration: 26s" />
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <Transition name="swap" mode="out-in">
+    <Transition name="swap" mode="out-in" @after-enter="setupMotion">
       <!-- Живая лента -->
       <div v-if="view === 'marquee'" :key="`m-${filter}`" ref="marquee" class="relative mt-8 flex flex-col">
         <div v-for="(row, r) in rows" :key="r" v-reveal="r * 0.15" data-row class="marquee">
@@ -298,14 +298,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.no-scrollbar {
-  scrollbar-width: none;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
 .bokeh {
   position: absolute;
   border-radius: 999px;

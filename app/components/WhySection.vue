@@ -13,16 +13,17 @@ const icons: Record<(typeof whyKeys)[number], string> = {
 </script>
 
 <template>
-  <section data-bg="#FFF7F5" class="py-20 sm:py-28">
+  <section data-bg="#FFF7F5" class="section">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
       <SectionHeading v-reveal :eyebrow="t('why.eyebrow')" title-key="why.title" accent-key="why.accent" />
 
-      <ul class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- На телефоне — лента карточек, которую листают пальцем: так блок не растягивается на 4 экрана -->
+      <ul class="no-scrollbar -mx-4 mt-10 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 pt-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:p-0 lg:grid-cols-4">
         <li
           v-for="(key, i) in whyKeys"
           :key="key"
           v-reveal="i * 0.08"
-          class="card group relative overflow-hidden p-6 transition duration-500 hover:-translate-y-1 hover:shadow-[0_24px_60px_-30px_rgba(123,45,99,0.45)]"
+          class="card group relative w-[80%] shrink-0 snap-start overflow-hidden p-6 transition duration-500 sm:w-auto hover:-translate-y-1 hover:shadow-[0_24px_60px_-30px_rgba(123,45,99,0.45)]"
         >
           <span class="absolute right-5 top-5 text-xs font-semibold text-ink/25">0{{ i + 1 }}</span>
           <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blush text-plum transition group-hover:bg-rose">
@@ -30,7 +31,7 @@ const icons: Record<(typeof whyKeys)[number], string> = {
               <path :d="icons[key]" />
             </svg>
           </span>
-          <h3 class="mt-6 text-xl font-semibold tracking-tight">{{ t(`why.items.${key}.title`) }}</h3>
+          <h3 class="mt-5 text-xl font-semibold tracking-tight sm:mt-6">{{ t(`why.items.${key}.title`) }}</h3>
           <p class="mt-2 leading-relaxed text-ink-soft">{{ t(`why.items.${key}.text`) }}</p>
         </li>
       </ul>

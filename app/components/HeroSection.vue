@@ -149,6 +149,9 @@ onBeforeUnmount(() => {
       </span>
     </div>
 
+    <!-- Шапка на первом экране прозрачная: лёгкая белая дымка сверху сохраняет читаемость меню поверх фото -->
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-white/60 via-white/20 to-transparent" aria-hidden="true" />
+
     <div data-content class="relative z-10 mx-auto -mt-24 w-full max-w-7xl px-4 pb-16 sm:px-6 lg:mt-0 lg:flex lg:min-h-[100svh] lg:items-center lg:px-10 lg:pb-0 lg:pt-[72px]">
       <div class="max-w-xl">
         <p data-fade class="eyebrow">

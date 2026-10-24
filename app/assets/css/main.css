@@ -58,6 +58,15 @@
   }
 }
 
+/* Горизонтальная прокрутка без полосы — для лент и каруселей на телефоне */
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer components {
   .accent {
     font-family: var(--font-accent);
@@ -76,6 +85,23 @@
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--color-plum);
+  }
+
+  /* Единый вертикальный ритм: у всех разделов одинаковые отступы сверху и снизу */
+  .section {
+    padding-block: 4rem;
+  }
+
+  @media (min-width: 640px) {
+    .section {
+      padding-block: 5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .section {
+      padding-block: 6rem;
+    }
   }
 
   .section-title {

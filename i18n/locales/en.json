@@ -123,7 +123,8 @@
         "name": "Paraffin hand bath",
         "desc": "Deep moisture and soft skin. The perfect add-on to any manicure."
       }
-    }
+    },
+    "showAll": "Show all services · {n}"
   },
   "booking": {
     "eyebrow": "Booking",
@@ -142,10 +143,11 @@
     "quick": "Tap a service on the phone — WhatsApp opens with a ready message",
     "phoneLabel": "Sample WhatsApp chat with Ardak",
     "total": "Total",
-    "messageGeneric": "Hi! I'd like to book a manicure. Could you tell me your free times?",
-    "messageFree": "Hi! Could you tell me your nearest free slots?",
-    "messageService": "Hi! I'd like to book: {service}. Could you tell me your free times?",
-    "messageServices": "Hi! I'd like to book: {services}. Could you tell me your free times?",
+    "messageSite": "Hi! I'm writing from the Smarttnails website.",
+    "messageGeneric": "Hi! I'm writing from the Smarttnails website. I'd like to book a manicure — could you tell me your free times?",
+    "messageFree": "Hi! I'm writing from the Smarttnails website. Could you tell me your nearest free slots?",
+    "messageService": "Hi! I'm writing from the Smarttnails website. I'd like to book: {service}. Could you tell me your free times?",
+    "messageServices": "Hi! I'm writing from the Smarttnails website. I'd like to book: {services}. Could you tell me your free times?",
     "chat": {
       "status": "business account",
       "today": "Today",
@@ -197,7 +199,7 @@
     "accent": "nail artist",
     "text": "Courses for beginners and salon artists: e-file manicure, levelling, French. Small groups and lots of practice.",
     "cta": "Ask about training",
-    "whatsappText": "Hi! I'd like to know more about your nail training."
+    "whatsappText": "Hi! I'm writing from the Smarttnails website. I'd like to know more about your nail training."
   },
   "faq": {
     "eyebrow": "FAQ",
@@ -252,7 +254,7 @@
     "toTop": "Back to top",
     "rights": "© {year} Smarttnails by Ardak Aldanazarova. All rights reserved.",
     "madeBy": "Design and development —",
-    "whatsappText": "Hi! My name is {name}. {message}"
+    "whatsappText": "Hi! I'm writing from the Smarttnails website. My name is {name}. {message}"
   },
   "toast": {
     "close": "Close notification"
@@ -279,6 +281,8 @@
       "Beauty",
       "Care",
       "Since 2017"
-    ]
+    ],
+    "more": "Read more",
+    "less": "Show less"
   }
 }

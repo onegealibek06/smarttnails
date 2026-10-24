@@ -18,6 +18,10 @@ const years = ref(8)
 const rating = ref(salon.rating)
 const ratingText = computed(() => rating.value.toFixed(1).replace('.', lang.value === 'en' ? '.' : ','))
 
+// На телефоне история свёрнута до первого абзаца
+const storyOpen = ref(false)
+watch(storyOpen, () => setTimeout(() => ScrollTrigger.refresh(), 650))
+
 let observer: IntersectionObserver | undefined
 let ctx: gsap.Context | undefined
 
@@ -65,7 +69,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="about" ref="root" data-bg="#F7EFEA" class="about relative overflow-x-clip py-20 sm:py-28" :class="{ armed, shown }">
+  <section id="about" ref="root" data-bg="#F7EFEA" class="about section relative overflow-x-clip" :class="{ armed, shown }">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
       <div class="grid grid-cols-[minmax(0,1fr)] gap-3 sm:gap-4 lg:grid-cols-12">
         <!-- Заголовок и цитата -->
@@ -74,12 +78,12 @@ onBeforeUnmount(() => {
             <span class="h-px w-6 bg-current" aria-hidden="true" />
             {{ t('about.eyebrow') }}
           </p>
-          <i18n-t keypath="about.title" tag="h2" class="mt-4 text-[clamp(2.4rem,5.4vw,4.6rem)] font-semibold leading-[1.02] tracking-[-0.045em]" scope="global">
+          <i18n-t keypath="about.title" tag="h2" class="section-title mt-4" scope="global">
             <template #accent>
               <span class="accent text-[1.1em]">{{ t('about.accent') }}</span>
             </template>
           </i18n-t>
-          <p class="mt-6 max-w-xl text-xl leading-snug tracking-tight text-ink-soft sm:text-2xl">
+          <p class="mt-5 max-w-xl text-lg leading-snug tracking-tight text-ink-soft sm:text-xl">
             <span class="mr-1 font-accent text-4xl leading-none text-rose-deep" aria-hidden="true">“</span>{{ t('about.quote') }}
           </p>
         </div>
@@ -120,11 +124,27 @@ onBeforeUnmount(() => {
 
         <!-- История -->
         <div class="tile rounded-[32px] bg-white/65 p-6 backdrop-blur sm:p-8 lg:col-span-7" style="--d: 2">
-          <div class="space-y-4 leading-relaxed text-ink-soft sm:text-[1.05rem]">
+          <div class="leading-relaxed text-ink-soft sm:text-[1.05rem]">
             <p>{{ t('about.p1') }}</p>
-            <p>{{ t('about.p2') }}</p>
-            <p>{{ t('about.p3') }}</p>
+            <div id="about-story" class="story-more" :class="{ 'story-more--open': storyOpen }">
+              <div>
+                <div class="space-y-4 pt-4">
+                  <p>{{ t('about.p2') }}</p>
+                  <p>{{ t('about.p3') }}</p>
+                </div>
+              </div>
+            </div>
           </div>
+          <button
+            type="button"
+            class="-mb-2 mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-rose-deep sm:hidden"
+            aria-controls="about-story"
+            :aria-expanded="storyOpen"
+            @click="storyOpen = !storyOpen"
+          >
+            {{ storyOpen ? t('about.less') : t('about.more') }}
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" class="transition-transform duration-500" :class="{ 'rotate-180': storyOpen }" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
         </div>
 
         <!-- Цифры и Instagram -->
@@ -158,7 +178,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Бегущая строка из ключевых слов -->
-    <div class="ticker mt-14 sm:mt-20" aria-hidden="true">
+    <div class="ticker mt-10 sm:mt-14" aria-hidden="true">
       <div class="ticker-track">
         <template v-for="copy in 2" :key="copy">
           <span v-for="(word, i) in ticker" :key="`${copy}-${i}`" class="ticker-item">
@@ -197,6 +217,23 @@ onBeforeUnmount(() => {
 
 .insta {
   min-height: 150px;
+}
+
+/* «Читать дальше» на телефоне: абзацы плавно раскрываются по высоте */
+@media (max-width: 639px) {
+  .story-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.6s var(--ease-soft);
+  }
+
+  .story-more > div {
+    overflow: hidden;
+  }
+
+  .story-more--open {
+    grid-template-rows: 1fr;
+  }
 }
 
 .ticker {

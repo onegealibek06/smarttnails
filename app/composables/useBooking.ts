@@ -1,4 +1,4 @@
-import { locations, services, type Location } from '~/data/salon'
+import { locations, salon, services, type Location } from '~/data/salon'
 
 // Адрес, по которому мастер принимает в конкретный день
 export function locationFor(date: string): Location {
@@ -28,5 +28,11 @@ export function useBooking() {
       : [...selected.value, id]
   }
 
-  return { selected, chosenServices, totalDuration, totalPrice, toggleService }
+  // Выбранные услуги уходят в WhatsApp готовым сообщением
+  const { t } = useI18n()
+  const whatsappHref = computed(() => whatsappLink(salon.whatsapp, t('booking.messageServices', {
+    services: chosenServices.value.map(s => t(`services.items.${s.id}.name`).toLowerCase()).join(', '),
+  })))
+
+  return { selected, chosenServices, totalDuration, totalPrice, whatsappHref, toggleService }
 }

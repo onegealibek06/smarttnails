@@ -95,26 +95,26 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="booking" ref="root" data-bg="#F2EBF8" class="relative overflow-x-clip py-20 sm:py-28">
-    <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-14 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16 lg:px-10">
+  <section id="booking" ref="root" data-bg="#F2EBF8" class="section relative overflow-x-clip">
+    <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-10 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16 lg:px-10">
       <div>
         <SectionHeading v-reveal :eyebrow="t('booking.eyebrow')" title-key="booking.title" accent-key="booking.accent" />
         <p v-reveal class="mt-5 max-w-md text-lg leading-relaxed text-ink-soft">{{ t('booking.subtitle') }}</p>
 
-        <ol class="mt-8 max-w-md space-y-3">
+        <ol class="mt-7 max-w-md space-y-2 sm:mt-8 sm:space-y-3">
           <li
             v-for="(step, i) in ['s1', 's2', 's3']"
             :key="step"
             v-reveal="i * 0.08"
-            class="flex items-center gap-4 rounded-3xl bg-white/60 p-4 backdrop-blur"
+            class="flex items-center gap-3 rounded-3xl bg-white/60 p-3 backdrop-blur sm:gap-4 sm:p-4"
           >
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-semibold text-milk">{{ i + 1 }}</span>
-            <span class="font-medium leading-snug">{{ t(`booking.steps.${step}`) }}</span>
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-semibold text-milk sm:h-10 sm:w-10">{{ i + 1 }}</span>
+            <span class="text-[15px] font-medium leading-snug sm:text-base">{{ t(`booking.steps.${step}`) }}</span>
           </li>
         </ol>
 
-        <div v-reveal class="mt-8 flex flex-wrap items-center gap-3">
-          <a :href="wa(t('booking.messageGeneric'))" target="_blank" rel="noopener" class="wa-btn group">
+        <div v-reveal class="mt-7 grid gap-2.5 sm:mt-8 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+          <a :href="wa(t('booking.messageGeneric'))" target="_blank" rel="noopener" class="wa-btn group justify-center">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 2s.8 2.3.9 2.5c.1.2 1.6 2.5 4 3.5 1.5.6 2 .7 2.8.6.4-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.5-.3z" /></svg>
             {{ t('booking.cta') }}
           </a>
@@ -379,12 +379,28 @@ onBeforeUnmount(() => {
   color: white;
 }
 
-.no-scrollbar {
-  scrollbar-width: none;
-}
+/* На телефоне iPhone компактнее, чтобы не занимал весь экран */
+@media (max-width: 639px) {
+  .phone {
+    width: 272px;
+    height: 560px;
+    border-radius: 48px;
+    padding: 10px;
+  }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+  .screen {
+    border-radius: 39px;
+  }
+
+  .island {
+    top: 18px;
+    width: 84px;
+    height: 24px;
+  }
+
+  .bubble {
+    font-size: 13px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

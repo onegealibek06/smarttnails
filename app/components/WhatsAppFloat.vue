@@ -10,7 +10,7 @@ const preloaderDone = useState('preloader:done', () => false)
   <Transition name="float">
     <a
       v-if="preloaderDone"
-      :href="whatsappLink(salon.whatsapp, '')"
+      :href="whatsappLink(salon.whatsapp, t('booking.messageSite'))"
       target="_blank"
       rel="noopener"
       class="wa fixed bottom-6 right-6 z-40 hidden items-center gap-2.5 rounded-xl bg-[#25D366] py-3 pl-3.5 pr-5 text-sm font-semibold text-white shadow-[0_18px_40px_-14px_rgba(37,211,102,0.75)] transition hover:-translate-y-1 hover:bg-[#1EBE5B] lg:flex"

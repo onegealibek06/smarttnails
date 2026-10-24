@@ -16,8 +16,8 @@ const mapSrc = computed(() => {
 </script>
 
 <template>
-  <section id="location" data-bg="#FFF7F5" class="py-20 sm:py-28">
-    <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-10">
+  <section id="location" data-bg="#FFF7F5" class="section">
+    <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-10">
       <div class="flex flex-col">
         <SectionHeading v-reveal :eyebrow="t('location.eyebrow')" title-key="location.title" accent-key="location.accent" />
 
@@ -46,7 +46,7 @@ const mapSrc = computed(() => {
 
           <div class="mt-7 flex flex-col gap-3 sm:flex-row">
             <a :href="salon.twoGis" target="_blank" rel="noopener" class="btn btn-primary">{{ t('location.open2gis') }}</a>
-            <a :href="whatsappLink(salon.whatsapp, '')" target="_blank" rel="noopener" class="btn btn-ghost">{{ t('cta.whatsapp') }}</a>
+            <a :href="whatsappLink(salon.whatsapp, t('booking.messageSite'))" target="_blank" rel="noopener" class="btn btn-ghost">{{ t('cta.whatsapp') }}</a>
           </div>
         </div>
 
@@ -56,20 +56,28 @@ const mapSrc = computed(() => {
         </p>
       </div>
 
-      <div v-reveal class="map relative min-h-[360px] overflow-hidden rounded-[36px] bg-blush lg:min-h-full">
+      <!-- Без анимации появления и без CSS-фильтра на самой карте: в Safari они могут сделать её пустой.
+           Под картой — запасной фон с меткой, сверху — розовый оттенок отдельным слоем -->
+      <div class="map relative min-h-[300px] sm:min-h-[360px] overflow-hidden rounded-[36px] bg-blush lg:min-h-full">
+        <span class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-plum" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
+          <span class="text-sm font-semibold">{{ loc.street[lang] }}</span>
+        </span>
         <iframe
           :src="mapSrc"
           :title="t('location.map')"
-          loading="lazy"
           class="absolute inset-0 h-full w-full border-0"
+        />
+        <span class="pointer-events-none absolute inset-0 bg-rose/15 mix-blend-multiply" aria-hidden="true" />
+        <!-- На телефоне карта не перехватывает прокрутку: касание открывает 2GIS -->
+        <a
+          :href="salon.twoGis"
+          target="_blank"
+          rel="noopener"
+          class="absolute inset-0 sm:hidden"
+          :aria-label="t('location.open2gis')"
         />
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-.map iframe {
-  filter: grayscale(0.85) sepia(0.2) hue-rotate(290deg) saturate(1.6) contrast(0.95) brightness(1.04);
-}
-</style>

@@ -102,7 +102,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="reviews" ref="root" data-bg="#F8ECF4" class="reviews overflow-x-clip py-20 sm:py-28" :class="{ armed, visible }">
+  <section id="reviews" ref="root" data-bg="#F8ECF4" class="reviews section overflow-x-clip" :class="{ armed, visible }">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
       <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,0.33fr)_minmax(0,0.67fr)] lg:gap-10">
         <div>
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
         </i18n-t>
       </div>
 
-      <div class="mt-12 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+      <div class="mt-10 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
         <!-- Карточка рейтинга -->
         <div class="rating-card relative flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[28px] p-6 sm:p-7">
           <div>

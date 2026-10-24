@@ -17,7 +17,7 @@ export const salon = {
   whatsapp: '77769946660',
   instagram: 'https://instagram.com/smarttnails_ardak',
   instagramHandle: '@smarttnails_ardak',
-  telegram: 'https://t.me/symbatnails',
+  tiktok: 'https://www.tiktok.com/@smarttnails',
   twoGis: 'https://2gis.kz/astana/firm/70000001083753872',
   rating: 5,
   ratingCount: 7,
@@ -80,10 +80,10 @@ export interface Service {
   popular?: boolean
 }
 
-// Прайс от Ардак (24.10). Время примерное — уточнить у неё.
+// Прайс и время от Ардак (24.10)
 export const services: Service[] = [
-  { id: 'manicure', duration: 120, price: 8000, popular: true },
-  { id: 'extension', duration: 180, price: 12000 },
+  { id: 'manicure', duration: 90, price: 8000, popular: true },
+  { id: 'extension', duration: 120, price: 12000 },
   { id: 'smartPedicure', duration: 90, price: 10000 },
   { id: 'removal', duration: 20, price: 1000 },
 ]
@@ -145,6 +145,6 @@ export const gallery: GalleryItem[] = [
 
 export const workSrc = (file: string, size: 640 | 1400 = 640) => `/works/${file}-${size}.webp`
 
-export const faqKeys = ['wear', 'late', 'cancel', 'payment', 'kids'] as const
+export const faqKeys = ['wear', 'late', 'kids', 'techniques'] as const
 // Пункты «За что меня любят» — по тексту Ардак (23.10)
 export const whyKeys = ['experience', 'sterile', 'speed', 'premium'] as const

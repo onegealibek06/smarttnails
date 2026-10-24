@@ -11,7 +11,7 @@ const links = ['about', 'works', 'services', 'booking', 'location', 'reviews', '
 const socials = computed(() => [
   { label: 'Instagram', href: salon.instagram, icon: 'M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm5 5a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm5.5-2.5h.01' },
   { label: 'WhatsApp', href: whatsappLink(salon.whatsapp, t('booking.messageSite')), icon: 'M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20zm5-11.5c0 3.5 3 6.5 6.5 6.5l1-1.5-2-1-1 1a4 4 0 0 1-2.5-2.5l1-1-1-2L9 8.5z' },
-  { label: 'Telegram', href: salon.telegram, icon: 'M21 4 3 11l6 2 2 6 3-4 5 4 2-15zM9 13l9-6-6 8' },
+  { label: 'TikTok', href: salon.tiktok, icon: 'M15 3v11a4 4 0 1 1-4-4M15 3c.3 2.6 2.2 4.6 5 4.8' },
   { label: '2GIS', href: salon.twoGis, icon: 'M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21zm0-9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z' },
 ])
 

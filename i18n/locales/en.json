@@ -197,23 +197,19 @@
     "items": {
       "wear": {
         "q": "How long does the polish last?",
-        "a": "Usually 3–4 weeks. I recommend a refill every 3 weeks so your nails always look fresh."
+        "a": "Ideally 3 weeks, 4 weeks at most."
       },
       "late": {
         "q": "What if I'm running late?",
-        "a": "Message me on WhatsApp. Up to 15 minutes late is fine. Any later and we may need to reschedule or shorten the service."
-      },
-      "cancel": {
-        "q": "How do I cancel or reschedule?",
-        "a": "Message me on WhatsApp — please at least 3 hours in advance."
-      },
-      "payment": {
-        "q": "How can I pay?",
-        "a": "Cash, card transfer or QR code."
+        "a": "Please let me know 15–20 minutes in advance."
       },
       "kids": {
-        "q": "Do you do kids' manicures?",
-        "a": "Yes — gently, with no e-file on the skin. Kids are welcome to come with a parent."
+        "q": "Do you do manicures for children?",
+        "a": "No, I don’t do children’s manicures. I see clients from 15 years old — e-file manicure only."
+      },
+      "techniques": {
+        "q": "What techniques and tools do you use?",
+        "a": "I work with e-file and combined manicure techniques — an e-file and cuticle scissors."
       }
     }
   },
@@ -235,8 +231,6 @@
     "accent": "inspiration",
     "quote": "For me it isn't work — it's the joy of creating beauty.",
     "p1": "My name is Ardak Aldanazarova. My journey in nails began in 2017. For creative people there's no limit to perfection, and I find inspiration everywhere — in colour, in shape, in every client's mood.",
-    "p2": "After maternity leave I took a break and even got into numerology. But my love of creating and my loyal clients didn't let me leave what I love — and now I'm back with fresh energy.",
-    "p3": "I'm running my professional blog again, sharing new work and nail-care secrets. I'd be glad to have your follows and support.",
     "cta": "Follow on Instagram",
     "since": "the year my journey began",
     "years": "years in the nail industry",
@@ -251,8 +245,6 @@
       "Beauty",
       "Care",
       "Since 2017"
-    ],
-    "more": "Read more",
-    "less": "Show less"
+    ]
   }
 }

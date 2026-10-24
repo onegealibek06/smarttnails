@@ -25,7 +25,7 @@ useHead({
       'geo': { '@type': 'GeoCoordinates', 'latitude': current.lat, 'longitude': current.lon },
       'openingHours': 'Mo-Su 09:00-22:00',
       'aggregateRating': { '@type': 'AggregateRating', 'ratingValue': salon.rating, 'ratingCount': salon.ratingCount },
-      'sameAs': [salon.instagram, salon.twoGis],
+      'sameAs': [salon.instagram, salon.tiktok, salon.twoGis],
     }),
   }],
 })

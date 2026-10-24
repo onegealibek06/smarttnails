@@ -99,7 +99,12 @@ onBeforeUnmount(() => {
     <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-10 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16 lg:px-10">
       <div>
         <SectionHeading v-reveal :eyebrow="t('booking.eyebrow')" title-key="booking.title" accent-key="booking.accent" />
-        <p v-reveal class="mt-5 max-w-md text-lg leading-relaxed text-ink-soft">{{ t('booking.subtitle') }}</p>
+        <p v-reveal class="mt-5 max-w-md text-lg leading-relaxed text-ink-soft">
+          {{ t('booking.subtitle') }}
+          <a :href="wa(t('booking.messageFree'))" target="_blank" rel="noopener" class="group whitespace-nowrap font-semibold text-rose-deep underline decoration-rose/50 decoration-2 underline-offset-4 transition hover:decoration-rose-deep">
+            {{ t('booking.grab') }}<span class="ml-1 inline-block transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+          </a>
+        </p>
 
         <ol class="mt-7 max-w-md space-y-2 sm:mt-8 sm:space-y-3">
           <li

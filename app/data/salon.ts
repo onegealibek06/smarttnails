@@ -80,15 +80,12 @@ export interface Service {
   popular?: boolean
 }
 
-// TODO: цены примерные, взять настоящий прайс у сестры
+// Прайс от Ардак (24.10). Время примерное — уточнить у неё.
 export const services: Service[] = [
-  { id: 'gel', duration: 90, price: 8000, popular: true },
-  { id: 'hardware', duration: 60, price: 5000 },
-  { id: 'french', duration: 120, price: 10000 },
-  { id: 'extension', duration: 150, price: 14000 },
-  { id: 'pedicure', duration: 90, price: 10000 },
-  { id: 'kids', duration: 30, price: 3000 },
-  { id: 'paraffin', duration: 20, price: 2000 },
+  { id: 'manicure', duration: 120, price: 8000, popular: true },
+  { id: 'extension', duration: 180, price: 12000 },
+  { id: 'smartPedicure', duration: 90, price: 10000 },
+  { id: 'removal', duration: 20, price: 1000 },
 ]
 
 export type GalleryTag = 'nude' | 'french' | 'design' | 'bright' | 'pedicure'

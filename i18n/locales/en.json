@@ -95,33 +95,21 @@
     "choose": "Choose",
     "chosen": "Chosen",
     "items": {
-      "gel": {
-        "name": "Manicure + gel polish",
-        "desc": "E-file manicure, nail levelling and long-lasting single-colour gel."
-      },
-      "hardware": {
-        "name": "Manicure, no polish",
-        "desc": "E-file cuticle care, shaping, treatment and oil."
-      },
-      "french": {
-        "name": "Manicure + French",
-        "desc": "Classic or coloured French in any shape, from soft square to almond."
+      "manicure": {
+        "name": "Manicure with gel polish",
+        "desc": "Combined or e-file manicure, nail levelling and long-lasting single-colour gel polish."
       },
       "extension": {
-        "name": "Gel extensions",
-        "desc": "Length and shape of your choice, polish and design included."
+        "name": "Nail extensions",
+        "desc": "Gel sculpting to the length and shape you like. Manicure and polish included."
       },
-      "pedicure": {
-        "name": "Pedicure with gel polish",
-        "desc": "Foot and toe care finished with gel polish."
+      "smartPedicure": {
+        "name": "Smart pedicure",
+        "desc": "Gentle care for feet and toes with disposable smart discs, no blades. Gel polish finish."
       },
-      "kids": {
-        "name": "Kids' manicure",
-        "desc": "Gentle care with no e-file and no filing on the skin."
-      },
-      "paraffin": {
-        "name": "Paraffin hand bath",
-        "desc": "Deep moisture and soft skin. The perfect add-on to any manicure."
+      "removal": {
+        "name": "Polish removal",
+        "desc": "Careful removal of gel polish or extensions without harming the nail."
       }
     },
     "showAll": "Show all services · {n}"
@@ -130,7 +118,8 @@
     "eyebrow": "Booking",
     "title": "Book {accent}",
     "accent": "on WhatsApp",
-    "subtitle": "Message me — I'll suggest free slots and book you in at a time that suits you. No calls, no long back-and-forth.",
+    "subtitle": "Thank you for choosing my work! Slots for this week are going fast — grab a time that suits you.",
+    "grab": "Book a slot",
     "steps": {
       "s1": "Choose a service — right on the phone screen",
       "s2": "Send me a convenient day and time",

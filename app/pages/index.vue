@@ -50,6 +50,5 @@ useHead({
     <TheFooter />
     <MobileBookBar />
     <WhatsAppFloat />
-    <ToastStack />
   </div>
 </template>

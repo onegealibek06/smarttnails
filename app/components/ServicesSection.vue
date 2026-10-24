@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { services } from '~/data/salon'
+import { salon, services } from '~/data/salon'
 
 const { t } = useI18n()
 const { lang, duration } = useLang()
-const { selected, toggleService, totalPrice, totalDuration } = useBooking()
+const { selected, chosenServices, toggleService, totalPrice, totalDuration } = useBooking()
+
+// Выбранные услуги сразу уходят в WhatsApp готовым сообщением
+const whatsappHref = computed(() => whatsappLink(salon.whatsapp, t('booking.messageServices', {
+  services: chosenServices.value.map(s => t(`services.items.${s.id}.name`).toLowerCase()).join(', '),
+})))
 </script>
 
 <template>
@@ -22,7 +27,7 @@ const { selected, toggleService, totalPrice, totalDuration } = useBooking()
               </div>
               <p class="text-sm text-milk/70">{{ duration(totalDuration) }}</p>
             </div>
-            <a href="#booking" class="btn btn-rose mt-5 w-full">{{ t('cta.book') }}</a>
+            <a :href="whatsappHref" target="_blank" rel="noopener" class="btn btn-rose mt-5 w-full">{{ t('booking.cta') }}</a>
           </div>
         </Transition>
       </div>

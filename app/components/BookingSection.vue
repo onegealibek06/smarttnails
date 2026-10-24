@@ -1,387 +1,382 @@
 <script setup lang="ts">
+import { gsap } from 'gsap'
 import { salon, services } from '~/data/salon'
-import type { Booking } from '~/composables/useBooking'
 
+// Запись — через WhatsApp сестры: справа iPhone с «живой» перепиской, внизу экрана —
+// кнопки-услуги, которые открывают WhatsApp с готовым сообщением.
 const { t } = useI18n()
-const { lang, duration } = useLang()
-const { push } = useToasts()
-const {
-  selected, chosenServices, totalDuration, totalPrice,
-  toggleService, freeSlots, book, cancel, upcoming, load,
-} = useBooking()
 
-type Step = 1 | 2 | 3 | 4
-const step = ref<Step>(1)
-const stepNames = ['services', 'time', 'contacts'] as const
+const wa = (text: string) => whatsappLink(salon.whatsapp, text)
+const serviceLink = (id: string) => wa(t('booking.messageService', { service: t(`services.items.${id}.name`).toLowerCase() }))
 
-const days = ref<string[]>([])
-const date = ref('')
-const time = ref<number | null>(null)
+interface ChatLine { id: number, side: 'in' | 'out', key: string, time: string }
+interface ScriptLine { side: 'in' | 'out', key: string, time: string, typing?: number, pause: number }
 
-const form = reactive({ name: '', phone: '', comment: '', remind: true })
-const errors = reactive({ services: false, time: false, name: false, phone: false })
-const lastBooking = ref<Booking | null>(null)
-const card = ref<HTMLElement>()
+// Сценарий переписки: typing — сколько мс Ардак «печатает» перед сообщением, pause — пауза после
+const SCRIPT: ScriptLine[] = [
+  { side: 'in', key: 'm1', time: '10:21', pause: 700 },
+  { side: 'in', key: 'm2', time: '10:21', pause: 1200 },
+  { side: 'out', key: 'm3', time: '10:23', pause: 1500 },
+  { side: 'in', key: 'm4', time: '10:24', typing: 1600, pause: 1000 },
+  { side: 'out', key: 'm5', time: '10:24', pause: 1300 },
+  { side: 'in', key: 'm6', time: '10:25', typing: 1300, pause: 800 },
+]
 
-const slots = computed(() => date.value ? freeSlots(date.value, totalDuration.value) : [])
-const dayFree = (d: string) => freeSlots(d, totalDuration.value || 60).length
-const dayLocation = computed(() => locationFor(date.value || toISODate(new Date())))
-const servicesText = computed(() => chosenServices.value.map(s => t(`services.items.${s.id}.name`)).join(', '))
+// На сервере (и без JavaScript) переписка видна целиком
+const lines = ref<ChatLine[]>(SCRIPT.map((s, i) => ({ id: i, side: s.side, key: s.key, time: s.time })))
+const typing = ref(false)
 
-function scrollToCard() {
-  if (!card.value) return
-  // window.scrollTo, а не scrollIntoView: тот прокручивает и блоки с overflow-hidden внутри
-  const top = card.value.getBoundingClientRect().top + window.scrollY - 88
-  window.scrollTo({ top, behavior: 'smooth' })
-}
+const root = ref<HTMLElement>()
+const phone = ref<HTMLElement>()
+let alive = true
+let observer: IntersectionObserver | undefined
+let ctx: gsap.Context | undefined
 
-function goTo(next: Step) {
-  step.value = next
-  nextTick(scrollToCard)
-}
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-function toTime() {
-  errors.services = !selected.value.length
-  if (errors.services) return
-  if (!date.value || !dayFree(date.value)) date.value = days.value.find(d => dayFree(d)) ?? days.value[0]!
-  time.value = null
-  goTo(2)
-}
-
-function toContacts() {
-  errors.time = time.value === null
-  if (!errors.time) goTo(3)
-}
-
-watch(date, () => {
-  time.value = null
-})
-
-const phoneDigits = computed(() => form.phone.replace(/\D/g, ''))
-
-// Ошибка пропадает, как только начали исправлять поле
-watch(() => form.name, () => { errors.name = false })
-watch(() => form.phone, () => { errors.phone = false })
-
-function submit() {
-  errors.name = form.name.trim().length < 2
-  errors.phone = phoneDigits.value.length !== 11
-  if (errors.name || errors.phone || time.value === null) return
-
-  const booking = book({
-    date: date.value,
-    start: time.value,
-    duration: totalDuration.value,
-    services: [...selected.value],
-    name: form.name.trim(),
-    phone: form.phone,
-    comment: form.comment.trim(),
-    remind: form.remind,
-  })
-  lastBooking.value = booking
-
-  const when = { date: formatDay(booking.date, lang.value, { day: 'numeric', month: 'long' }), time: formatTime(booking.start) }
-  push(t('booking.toastBooked', when))
-  // Демо: в следующей версии здесь будет настоящий Telegram-бот мастера
-  setTimeout(() => push(t('booking.toastMaster'), 'info'), 1400)
-  goTo(4)
-}
-
-function restart() {
-  selected.value = []
-  time.value = null
-  form.comment = ''
-  lastBooking.value = null
-  goTo(1)
-}
-
-function cancelBooking(id: string) {
-  cancel(id)
-  push(t('booking.toastCancelled'), 'info')
-}
-
-function addressLine(d: string) {
-  const loc = locationFor(d)
-  return `${loc.street[lang.value]}, ${loc.details[lang.value]}`
-}
-
-function downloadIcs(b: Booking) {
-  const ics = bookingToIcs(b, t('booking.calendarTitle'), `${addressLine(b.date)}, ${locationFor(b.date).district[lang.value]}`)
-  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'smarttnails.ics'
-  a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
-
-function bookingWhatsapp(b: Booking) {
-  const names = b.services.map(id => t(`services.items.${id}.name`)).join(', ')
-  return whatsappLink(salon.whatsapp, t('booking.whatsappText', {
-    date: formatDay(b.date, lang.value, { day: 'numeric', month: 'long' }),
-    time: formatTime(b.start),
-    services: names,
-  }))
+async function play() {
+  let id = 100
+  while (alive) {
+    lines.value = []
+    await sleep(600)
+    for (const step of SCRIPT) {
+      if (!alive) return
+      if (step.typing) {
+        typing.value = true
+        await sleep(step.typing)
+        typing.value = false
+      }
+      lines.value = [...lines.value, { id: id++, side: step.side, key: step.key, time: step.time }]
+      await sleep(step.pause)
+    }
+    await sleep(5000)
+  }
 }
 
 onMounted(() => {
-  load()
-  const now = new Date()
-  days.value = Array.from({ length: 14 }, (_, i) => toISODate(addDays(now, i)))
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !phone.value) return
+
+  // Переписка запускается, когда телефон показался на экране
+  observer = new IntersectionObserver(([entry]) => {
+    if (!entry!.isIntersecting) return
+    observer?.disconnect()
+    play()
+  }, { threshold: 0.3 })
+  observer.observe(phone.value)
+
+  // Телефон чуть поворачивается за мышкой (только на компьютере)
+  if (!window.matchMedia('(pointer: fine)').matches || !root.value) return
+  ctx = gsap.context(() => {
+    const rx = gsap.quickTo(phone.value!, 'rotationX', { duration: 0.9, ease: 'power3' })
+    const ry = gsap.quickTo(phone.value!, 'rotationY', { duration: 0.9, ease: 'power3' })
+    const onMove = (e: PointerEvent) => {
+      const rect = root.value!.getBoundingClientRect()
+      ry(((e.clientX - rect.left) / rect.width - 0.5) * 12)
+      rx(((e.clientY - rect.top) / rect.height - 0.5) * -8)
+    }
+    const onLeave = () => {
+      rx(0)
+      ry(0)
+    }
+    root.value!.addEventListener('pointermove', onMove)
+    root.value!.addEventListener('pointerleave', onLeave)
+    return () => {
+      root.value?.removeEventListener('pointermove', onMove)
+      root.value?.removeEventListener('pointerleave', onLeave)
+    }
+  })
+})
+
+onBeforeUnmount(() => {
+  alive = false
+  observer?.disconnect()
+  ctx?.revert()
 })
 </script>
 
 <template>
-  <section id="booking" data-bg="#F2EBF8" class="px-2 py-8 sm:px-4 sm:py-12">
-    <div class="relative mx-auto max-w-7xl overflow-clip rounded-[36px] bg-ink px-4 py-14 text-milk sm:rounded-[48px] sm:px-10 sm:py-20 lg:px-16">
-      <div class="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-plum/60 blur-3xl" aria-hidden="true" />
-      <div class="pointer-events-none absolute -bottom-40 left-10 h-96 w-96 rounded-full bg-rose-deep/25 blur-3xl" aria-hidden="true" />
+  <section id="booking" ref="root" data-bg="#F2EBF8" class="relative overflow-x-clip py-20 sm:py-28">
+    <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-14 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16 lg:px-10">
+      <div>
+        <SectionHeading v-reveal :eyebrow="t('booking.eyebrow')" title-key="booking.title" accent-key="booking.accent" />
+        <p v-reveal class="mt-5 max-w-md text-lg leading-relaxed text-ink-soft">{{ t('booking.subtitle') }}</p>
 
-      <div class="relative grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
-        <div>
-          <SectionHeading v-reveal light :eyebrow="t('booking.eyebrow')" title-key="booking.title" accent-key="booking.accent" />
-          <p v-reveal class="mt-5 max-w-sm leading-relaxed text-milk/70">{{ t('booking.subtitle') }}</p>
+        <ol class="mt-8 max-w-md space-y-3">
+          <li
+            v-for="(step, i) in ['s1', 's2', 's3']"
+            :key="step"
+            v-reveal="i * 0.08"
+            class="flex items-center gap-4 rounded-3xl bg-white/60 p-4 backdrop-blur"
+          >
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-semibold text-milk">{{ i + 1 }}</span>
+            <span class="font-medium leading-snug">{{ t(`booking.steps.${step}`) }}</span>
+          </li>
+        </ol>
 
-          <ol class="mt-10 hidden flex-col gap-4 lg:flex">
-            <li v-for="(name, i) in stepNames" :key="name" class="flex items-center gap-4">
-              <span
-                class="flex h-10 w-10 items-center justify-center rounded-full border text-sm font-semibold transition"
-                :class="step > i + 1 ? 'border-rose bg-rose text-ink' : step === i + 1 ? 'border-milk bg-milk text-ink' : 'border-milk/20 text-milk/50'"
-              >
-                <template v-if="step > i + 1">✓</template>
-                <template v-else>{{ i + 1 }}</template>
-              </span>
-              <span :class="step === i + 1 ? 'text-milk' : 'text-milk/50'">{{ t(`booking.steps.${name}`) }}</span>
-            </li>
-          </ol>
+        <div v-reveal class="mt-8 flex flex-wrap items-center gap-3">
+          <a :href="wa(t('booking.messageGeneric'))" target="_blank" rel="noopener" class="wa-btn group">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 2s.8 2.3.9 2.5c.1.2 1.6 2.5 4 3.5 1.5.6 2 .7 2.8.6.4-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.5-.3z" /></svg>
+            {{ t('booking.cta') }}
+          </a>
+          <a :href="`tel:${salon.phone}`" class="btn btn-ghost bg-white/50">{{ t('booking.call') }}</a>
         </div>
+        <p v-reveal class="mt-5 flex items-center gap-2 text-sm text-ink-soft">
+          <span class="h-2 w-2 shrink-0 rounded-full bg-[#25D366]" aria-hidden="true" />
+          {{ t('booking.hours') }}
+        </p>
+      </div>
 
-        <div ref="card">
-          <ClientOnly>
-            <div class="rounded-[28px] bg-milk p-5 text-ink sm:p-8">
-              <!-- Мобильный индикатор шагов -->
-              <div v-if="step < 4" class="mb-6 flex gap-1.5 lg:hidden" aria-hidden="true">
-                <span v-for="i in 3" :key="i" class="h-1 flex-1 rounded-full transition" :class="step >= i ? 'bg-rose-deep' : 'bg-blush-deep'" />
-              </div>
+      <!-- iPhone с перепиской -->
+      <div class="relative mx-auto w-full max-w-[330px]" style="perspective: 1200px">
+        <div class="pointer-events-none absolute -inset-10 rounded-full bg-[#25D366]/15 blur-3xl" aria-hidden="true" />
+        <div class="pointer-events-none absolute -bottom-6 -left-10 h-56 w-56 rounded-full bg-rose/40 blur-3xl" aria-hidden="true" />
 
-              <!-- Шаг 1: услуги -->
-              <div v-if="step === 1">
-                <h3 class="text-xl font-semibold tracking-tight">{{ t('booking.steps.services') }}</h3>
-                <ul class="mt-5 grid gap-2 sm:grid-cols-2">
-                  <li v-for="service in services" :key="service.id">
-                    <button
-                      type="button"
-                      class="flex min-h-[64px] w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition"
-                      :class="selected.includes(service.id) ? 'border-ink bg-ink text-milk' : 'border-ink/10 bg-white hover:border-ink/30'"
-                      :aria-pressed="selected.includes(service.id)"
-                      @click="toggleService(service.id); errors.services = false"
-                    >
-                      <span class="text-sm font-medium leading-snug">{{ t(`services.items.${service.id}.name`) }}</span>
-                      <span class="shrink-0 text-right text-xs opacity-70">
-                        {{ t('services.price', { price: formatPrice(service.price, lang) }) }}<br>{{ duration(service.duration) }}
-                      </span>
-                    </button>
-                  </li>
-                </ul>
-                <p v-if="errors.services" class="mt-3 text-sm font-medium text-rose-deep" role="alert">{{ t('booking.pickService') }}</p>
-
-                <div class="mt-6 flex flex-col gap-4 border-t border-ink/8 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                  <p class="text-sm text-ink-soft">
-                    <template v-if="selected.length">
-                      {{ t('booking.total') }}: <b class="text-ink">{{ t('services.price', { price: formatPrice(totalPrice, lang) }) }}</b> · {{ duration(totalDuration) }}
-                    </template>
-                    <template v-else>{{ t('booking.pickService') }}</template>
-                  </p>
-                  <button type="button" class="btn btn-primary" @click="toTime">{{ t('booking.next') }} →</button>
-                </div>
-              </div>
-
-              <!-- Шаг 2: дата и время -->
-              <div v-else-if="step === 2">
-                <h3 class="text-xl font-semibold tracking-tight">{{ t('booking.pickDate') }}</h3>
-                <div class="no-scrollbar -mx-5 mt-4 flex snap-x gap-2 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8">
-                  <button
-                    v-for="d in days"
-                    :key="d"
-                    type="button"
-                    class="flex h-[76px] w-[64px] shrink-0 snap-start flex-col items-center justify-center rounded-2xl border transition"
-                    :class="[
-                      date === d ? 'border-ink bg-ink text-milk' : 'border-ink/10 bg-white hover:border-ink/30',
-                      !dayFree(d) && date !== d ? 'opacity-40' : '',
-                    ]"
-                    :aria-pressed="date === d"
-                    :aria-label="formatDay(d, lang)"
-                    @click="date = d"
-                  >
-                    <span class="text-[11px] uppercase tracking-wide opacity-70">{{ formatDay(d, lang, { weekday: 'short' }) }}</span>
-                    <span class="text-xl font-semibold leading-tight">{{ formatDay(d, lang, { day: 'numeric' }) }}</span>
-                    <span class="text-[10px] opacity-60">{{ formatDay(d, lang, { month: 'short' }) }}</span>
-                  </button>
-                </div>
-
-                <h3 class="mt-7 text-xl font-semibold tracking-tight">{{ t('booking.pickTime') }}</h3>
-                <p class="mt-1 text-sm text-ink-soft first-letter:uppercase">{{ formatDay(date, lang) }} · {{ duration(totalDuration) }}</p>
-                <div v-if="slots.length" class="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-6">
-                  <button
-                    v-for="s in slots"
-                    :key="s"
-                    type="button"
-                    class="h-11 rounded-xl border text-sm font-semibold tabular-nums transition"
-                    :class="time === s ? 'border-rose-deep bg-rose-deep text-white' : 'border-ink/10 bg-white hover:border-ink/30'"
-                    :aria-pressed="time === s"
-                    @click="time = s; errors.time = false"
-                  >
-                    {{ formatTime(s) }}
-                  </button>
-                </div>
-                <p v-else class="mt-4 rounded-2xl bg-blush px-4 py-3 text-sm">{{ t('booking.noSlots') }}</p>
-                <p v-if="errors.time" class="mt-3 text-sm font-medium text-rose-deep" role="alert">{{ t('booking.pickTimeError') }}</p>
-
-                <div class="mt-6 flex items-start gap-3 rounded-2xl bg-white p-4">
-                  <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blush text-plum">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
-                  </span>
-                  <div>
-                    <p class="text-xs font-medium text-ink-soft">{{ t('booking.addressForDay') }}</p>
-                    <p class="mt-0.5 font-semibold">{{ dayLocation.street[lang] }}</p>
-                    <p class="text-sm text-ink-soft">{{ dayLocation.details[lang] }} · {{ dayLocation.district[lang] }}</p>
-                  </div>
-                </div>
-
-                <div class="mt-6 flex justify-between gap-3 border-t border-ink/8 pt-5">
-                  <button type="button" class="btn btn-ghost" @click="goTo(1)">← {{ t('booking.back') }}</button>
-                  <button type="button" class="btn btn-primary" @click="toContacts">{{ t('booking.next') }} →</button>
-                </div>
-              </div>
-
-              <!-- Шаг 3: контакты -->
-              <form v-else-if="step === 3" novalidate @submit.prevent="submit">
-                <div class="rounded-2xl bg-white p-4 text-sm">
-                  <p class="font-semibold first-letter:uppercase">{{ formatDay(date, lang) }}, {{ formatTime(time ?? 0) }}</p>
-                  <p class="mt-1 text-ink-soft">{{ t('booking.summary', { services: servicesText, duration: duration(totalDuration) }) }}</p>
-                  <p class="mt-1 text-ink-soft">{{ addressLine(date) }}</p>
-                  <p class="mt-2 font-semibold">{{ t('services.price', { price: formatPrice(totalPrice, lang) }) }}</p>
-                </div>
-
-                <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                  <FloatField
-                    v-model="form.name"
-                    :label="t('booking.name')"
-                    :placeholder="t('booking.namePlaceholder')"
-                    autocomplete="given-name"
-                    :error="errors.name ? t('booking.errors.name') : undefined"
-                  />
-                  <FloatField
-                    v-model="form.phone"
-                    type="tel"
-                    inputmode="tel"
-                    autocomplete="tel"
-                    :label="t('booking.phone')"
-                    :placeholder="t('booking.phonePlaceholder')"
-                    :format="formatKzPhone"
-                    :error="errors.phone ? t('booking.errors.phone') : undefined"
-                  />
-                </div>
-                <FloatField
-                  v-model="form.comment"
-                  class="mt-3"
-                  textarea
-                  :rows="2"
-                  :label="t('booking.comment')"
-                  :placeholder="t('booking.commentPlaceholder')"
-                />
-                <label class="mt-5 flex cursor-pointer items-center gap-3 text-sm">
-                  <input v-model="form.remind" type="checkbox" role="switch" class="peer sr-only">
-                  <span class="switch" aria-hidden="true" />
-                  {{ t('booking.remind') }}
-                </label>
-
-                <div class="mt-6 flex justify-between gap-3 border-t border-ink/8 pt-5">
-                  <button type="button" class="btn btn-ghost" @click="goTo(2)">← {{ t('booking.back') }}</button>
-                  <button type="submit" class="btn btn-primary">{{ t('booking.submit') }}</button>
-                </div>
-              </form>
-
-              <!-- Шаг 4: готово -->
-              <div v-else-if="lastBooking" class="py-4 text-center">
-                <span class="success-check mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose text-ink">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <div class="phone-float relative">
+          <figure ref="phone" class="phone relative mx-auto" :aria-label="t('booking.phoneLabel')">
+            <div class="screen">
+              <!-- Строка состояния -->
+              <div class="flex h-11 shrink-0 items-end justify-between px-7 pb-1 text-[13px] font-semibold" aria-hidden="true">
+                <span>9:41</span>
+                <span class="flex items-center gap-1">
+                  <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="currentColor" /><rect x="4.5" y="5" width="3" height="6" rx="1" fill="currentColor" /><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="currentColor" /><rect x="13.5" y="0" width="3" height="11" rx="1" fill="currentColor" /></svg>
+                  <svg width="15" height="11" viewBox="0 0 15 11"><path d="M7.5 2.2c2 0 3.9.8 5.3 2.1l1-1A8.9 8.9 0 0 0 7.5.8 8.9 8.9 0 0 0 1.2 3.3l1 1a7.5 7.5 0 0 1 5.3-2.1zm0 3c1.2 0 2.3.4 3.2 1.2l1-1A6 6 0 0 0 7.5 3.8a6 6 0 0 0-4.2 1.6l1 1a4.5 4.5 0 0 1 3.2-1.2zm0 3a1.5 1.5 0 0 0-1.1.4l1.1 1.2 1.1-1.2a1.5 1.5 0 0 0-1.1-.4z" fill="currentColor" /></svg>
+                  <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".4" /><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor" /><rect x="22.5" y="4" width="1.5" height="4" rx=".7" fill="currentColor" opacity=".5" /></svg>
                 </span>
-                <h3 class="mt-5 text-3xl font-semibold tracking-tight">{{ t('booking.success.title') }}</h3>
-                <p class="mt-2 text-ink-soft">
-                  {{ t('booking.success.text', { date: formatDay(lastBooking.date, lang, { day: 'numeric', month: 'long' }), time: formatTime(lastBooking.start) }) }}
-                </p>
-                <p class="mt-1 text-sm text-ink-soft">{{ addressLine(lastBooking.date) }}</p>
-                <div class="mt-7 flex flex-col justify-center gap-2 sm:flex-row">
-                  <button type="button" class="btn btn-primary" @click="downloadIcs(lastBooking)">{{ t('booking.success.addCalendar') }}</button>
-                  <a :href="bookingWhatsapp(lastBooking)" target="_blank" rel="noopener" class="btn btn-ghost">{{ t('booking.success.writeMaster') }}</a>
-                </div>
-                <button type="button" class="mt-4 text-sm font-semibold text-rose-deep underline-offset-4 hover:underline" @click="restart">{{ t('booking.success.again') }}</button>
               </div>
-            </div>
 
-            <!-- Мои записи -->
-            <div v-if="upcoming.length" class="mt-4 rounded-[28px] border border-milk/15 p-5 sm:p-6">
-              <h3 class="text-sm font-semibold uppercase tracking-[0.16em] text-rose">{{ t('booking.my') }}</h3>
-              <ul class="mt-3 divide-y divide-milk/10">
-                <li v-for="b in upcoming" :key="b.id" class="flex items-center justify-between gap-4 py-3">
-                  <div class="min-w-0">
-                    <p class="font-semibold first-letter:uppercase">{{ formatDay(b.date, lang, { weekday: 'short', day: 'numeric', month: 'long' }) }}, {{ formatTime(b.start) }}</p>
-                    <p class="truncate text-sm text-milk/60">{{ b.services.map(id => t(`services.items.${id}.name`)).join(', ') }}</p>
+              <!-- Шапка чата -->
+              <div class="flex shrink-0 items-center gap-2.5 border-b border-black/5 bg-white/95 px-3 py-2">
+                <svg width="10" height="17" viewBox="0 0 10 17" class="text-[#128C7E]" aria-hidden="true"><path d="M8.5 1.5 1.5 8.5l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose" aria-hidden="true">
+                  <NailShape class="h-5 w-3 text-white" />
+                </span>
+                <span class="min-w-0 flex-1 leading-tight">
+                  <span class="block truncate text-[14px] font-semibold">Smarttnails · Ardak</span>
+                  <span class="flex items-center gap-1 text-[11px] text-ink/55">
+                    <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path fill="#25D366" d="m12 1 3 2.2 3.7-.2 1.1 3.5 3 2.2-1.2 3.5 1.2 3.5-3 2.2-1.1 3.5-3.7-.2L12 23l-3-2.2-3.7.2-1.1-3.5-3-2.2L2.4 12 1.2 8.5l3-2.2 1.1-3.5 3.7.2z" /><path d="m7.5 12.5 3 3 6-6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    {{ t('booking.chat.status') }}
+                  </span>
+                </span>
+                <span class="flex items-center gap-3 text-[#128C7E]" aria-hidden="true">
+                  <svg width="20" height="14" viewBox="0 0 22 14"><rect x="1" y="1" width="14" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="m15 5.5 5.5-3v9L15 8.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24"><path d="M6.6 2h3l1.6 5-2.2 1.5a12 12 0 0 0 6.5 6.5l1.5-2.2 5 1.6v3a2 2 0 0 1-2.2 2A18 18 0 0 1 4.6 4.2 2 2 0 0 1 6.6 2z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
+                </span>
+              </div>
+
+              <!-- Переписка -->
+              <div class="chat flex min-h-0 flex-1 flex-col justify-end gap-1.5 overflow-hidden px-3 py-3" aria-hidden="true">
+                <span class="mb-1 self-center rounded-md bg-white/85 px-2 py-0.5 text-[11px] font-medium text-ink/60 shadow-sm">{{ t('booking.chat.today') }}</span>
+                <TransitionGroup name="msg">
+                  <div
+                    v-for="line in lines"
+                    :key="line.id"
+                    class="bubble"
+                    :class="line.side === 'in' ? 'bubble--in' : 'bubble--out'"
+                  >
+                    {{ t(`booking.chat.${line.key}`) }}
+                    <span class="ml-2 inline-flex translate-y-1 items-center gap-0.5 whitespace-nowrap align-bottom text-[10px] text-ink/45">
+                      {{ line.time }}
+                      <svg v-if="line.side === 'out'" width="15" height="9" viewBox="0 0 16 10"><path d="m1 5.5 3 3L10.5 2M6.5 8.5l1 0L14.5 2" fill="none" stroke="#53BDEB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    </span>
                   </div>
-                  <button type="button" class="shrink-0 rounded-full border border-milk/20 px-4 py-2 text-sm transition hover:bg-milk/10" @click="cancelBooking(b.id)">
-                    {{ t('booking.cancel') }}
-                  </button>
-                </li>
-              </ul>
+                  <div v-if="typing" key="typing" class="bubble bubble--in flex items-center gap-1 !py-3">
+                    <i class="dot" /><i class="dot" /><i class="dot" />
+                  </div>
+                </TransitionGroup>
+              </div>
+
+              <!-- Быстрые кнопки-услуги: открывают WhatsApp с готовым сообщением -->
+              <div class="no-scrollbar flex shrink-0 gap-1.5 overflow-x-auto bg-[#F7F3EF] px-3 py-2">
+                <a :href="wa(t('booking.messageFree'))" target="_blank" rel="noopener" class="chip-wa chip-wa--accent">{{ t('booking.free') }}</a>
+                <a
+                  v-for="service in services"
+                  :key="service.id"
+                  :href="serviceLink(service.id)"
+                  target="_blank"
+                  rel="noopener"
+                  class="chip-wa"
+                >{{ t(`services.items.${service.id}.name`) }}</a>
+              </div>
+
+              <!-- Поле ввода: тоже ведёт в WhatsApp -->
+              <a :href="wa(t('booking.messageGeneric'))" target="_blank" rel="noopener" class="flex shrink-0 items-center gap-2 bg-[#F7F3EF] px-3 pb-6 pt-1" :aria-label="t('booking.cta')">
+                <span class="text-2xl leading-none text-[#128C7E]" aria-hidden="true">+</span>
+                <span class="flex-1 rounded-full border border-black/5 bg-white px-4 py-2 text-[13px] text-ink/40">{{ t('booking.chat.input') }}</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366] text-white" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5 21 12 3 3.5l.01 6.6L15 12 3.01 13.9z" /></svg>
+                </span>
+              </a>
             </div>
 
-            <template #fallback>
-              <div class="h-[420px] animate-pulse rounded-[28px] bg-milk/10" />
-            </template>
-          </ClientOnly>
+            <!-- «Остров» и кнопки корпуса -->
+            <span class="island" aria-hidden="true" />
+            <span class="side-btn left-[-3px] top-[120px] h-8" aria-hidden="true" />
+            <span class="side-btn left-[-3px] top-[170px] h-14" aria-hidden="true" />
+            <span class="side-btn right-[-3px] top-[150px] h-20" aria-hidden="true" />
+          </figure>
         </div>
+        <p class="relative mt-7 text-center text-xs text-ink-soft">{{ t('booking.quick') }}</p>
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
-/* Переключатель «Напомнить в Telegram» вместо старомодной галочки */
-.switch {
-  position: relative;
-  flex: none;
-  width: 46px;
-  height: 28px;
+.wa-btn {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 0.6rem;
   border-radius: 999px;
-  background: rgb(42 20 36 / 0.12);
-  transition: background-color 0.3s;
+  background: #25D366;
+  padding: 0 1.6rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 18px 40px -16px rgb(37 211 102 / 0.75);
+  transition: transform 0.3s var(--ease-soft), background-color 0.3s;
 }
 
-.switch::after {
-  content: '';
+.wa-btn:hover {
+  background: #1EBE5B;
+  transform: translateY(-2px);
+}
+
+.phone-float {
+  animation: bob 6s ease-in-out infinite alternate;
+}
+
+@keyframes bob {
+  from {
+    transform: translateY(-8px);
+  }
+  to {
+    transform: translateY(8px);
+  }
+}
+
+/* Корпус iPhone: тёмная рамка, скругления, мягкая тень */
+.phone {
+  width: 300px;
+  height: 630px;
+  border-radius: 54px;
+  background: #1c1418;
+  padding: 11px;
+  box-shadow:
+    inset 0 0 0 2px #3a2e35,
+    0 50px 90px -40px rgb(42 20 36 / 0.6),
+    0 30px 60px -30px rgb(37 211 102 / 0.35);
+  transform-style: preserve-3d;
+}
+
+.screen {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 44px;
+  background: #EFE7DE;
+  color: var(--color-ink);
+}
+
+/* Фон чата как в WhatsApp: тёплый беж с едва заметным узором */
+.chat {
+  background:
+    radial-gradient(circle at 20% 30%, rgb(0 0 0 / 0.035) 1.5px, transparent 2px) 0 0 / 22px 22px,
+    radial-gradient(circle at 70% 75%, rgb(0 0 0 / 0.03) 1.5px, transparent 2px) 0 0 / 30px 30px,
+    #EFE7DE;
+}
+
+.island {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 22px;
-  height: 22px;
+  top: 20px;
+  left: 50%;
+  width: 92px;
+  height: 27px;
   border-radius: 999px;
+  background: #000;
+  transform: translateX(-50%);
+}
+
+.side-btn {
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  background: #2a2026;
+}
+
+.bubble {
+  max-width: 80%;
+  border-radius: 16px;
+  padding: 6px 10px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.08);
+}
+
+.bubble--in {
+  align-self: flex-start;
+  border-top-left-radius: 4px;
   background: white;
-  box-shadow: 0 2px 6px rgb(42 20 36 / 0.2);
-  transition: transform 0.35s var(--ease-soft);
 }
 
-.peer:checked + .switch {
-  background: var(--color-rose-deep);
+.bubble--out {
+  align-self: flex-end;
+  border-top-right-radius: 4px;
+  background: #D9FDD3;
 }
 
-.peer:checked + .switch::after {
-  transform: translateX(18px);
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(42 20 36 / 0.35);
+  animation: typing 1.2s infinite ease-in-out;
 }
 
-.peer:focus-visible + .switch {
-  outline: 2px solid var(--color-plum);
-  outline-offset: 3px;
+.dot:nth-child(2) { animation-delay: 0.15s; }
+.dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.msg-enter-active {
+  transition: opacity 0.35s var(--ease-soft), transform 0.35s var(--ease-soft);
+}
+
+.msg-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+}
+
+.msg-leave-active {
+  transition: opacity 0.25s;
+  position: absolute;
+}
+
+.msg-leave-to {
+  opacity: 0;
+}
+
+.chip-wa {
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid rgb(18 140 126 / 0.25);
+  background: white;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #128C7E;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.chip-wa:hover,
+.chip-wa--accent {
+  background: #25D366;
+  border-color: #25D366;
+  color: white;
 }
 
 .no-scrollbar {
@@ -392,14 +387,9 @@ onMounted(() => {
   display: none;
 }
 
-.success-check {
-  animation: pop 0.6s var(--ease-soft) both;
-}
-
-@keyframes pop {
-  from {
-    transform: scale(0.4);
-    opacity: 0;
+@media (prefers-reduced-motion: reduce) {
+  .phone-float {
+    animation: none;
   }
 }
 </style>

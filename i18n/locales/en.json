@@ -126,52 +126,37 @@
     }
   },
   "booking": {
-    "eyebrow": "Online booking",
+    "eyebrow": "Booking",
     "title": "Book {accent}",
-    "accent": "in a minute",
-    "subtitle": "No calls, no back-and-forth: pick your services and a time that suits you.",
+    "accent": "on WhatsApp",
+    "subtitle": "Message me — I'll suggest free slots and book you in at a time that suits you. No calls, no long back-and-forth.",
     "steps": {
-      "services": "Services",
-      "time": "Date and time",
-      "contacts": "Details"
+      "s1": "Choose a service — right on the phone screen",
+      "s2": "Send me a convenient day and time",
+      "s3": "Get your booking confirmed"
     },
-    "pickService": "Choose at least one service",
+    "cta": "Book on WhatsApp",
+    "call": "Call",
+    "hours": "I reply every day from 9:00 to 22:00",
+    "free": "Any free slots?",
+    "quick": "Tap a service on the phone — WhatsApp opens with a ready message",
+    "phoneLabel": "Sample WhatsApp chat with Ardak",
     "total": "Total",
-    "duration": "Duration",
-    "pickDate": "Choose a day",
-    "pickTime": "Available times",
-    "noSlots": "No free time on this day — please choose another one.",
-    "pickTimeError": "Choose a time",
-    "addressForDay": "Address for this day",
-    "name": "Your name",
-    "namePlaceholder": "Aigerim",
-    "phone": "Phone",
-    "phonePlaceholder": "+7 7__ ___ __ __",
-    "comment": "Wishes",
-    "commentPlaceholder": "For example: nude, short almond shape",
-    "remind": "Remind me on Telegram the day before",
-    "errors": {
-      "name": "Enter your name",
-      "phone": "Enter the full number: +7 and 10 digits"
-    },
-    "next": "Next",
-    "back": "Back",
-    "submit": "Book",
-    "summary": "{services} · {duration}",
-    "success": {
-      "title": "You're booked!",
-      "text": "See you on {date} at {time}.",
-      "addCalendar": "Add to calendar",
-      "writeMaster": "Message Ardak",
-      "again": "New booking"
-    },
-    "my": "My bookings",
-    "cancel": "Cancel",
-    "toastBooked": "Booking confirmed: {date}, {time}",
-    "toastMaster": "Ardak has been notified about your booking",
-    "toastCancelled": "Booking cancelled — the slot is free again",
-    "whatsappText": "Hi! I booked on your website for {date} at {time}: {services}.",
-    "calendarTitle": "Nails at Smarttnails"
+    "messageGeneric": "Hi! I'd like to book a manicure. Could you tell me your free times?",
+    "messageFree": "Hi! Could you tell me your nearest free slots?",
+    "messageService": "Hi! I'd like to book: {service}. Could you tell me your free times?",
+    "messageServices": "Hi! I'd like to book: {services}. Could you tell me your free times?",
+    "chat": {
+      "status": "business account",
+      "today": "Today",
+      "input": "Message",
+      "m1": "Hi! 💅 It's Ardak from Smarttnails",
+      "m2": "Tell me the service and a day that suits you — I'll suggest free times ✨",
+      "m3": "I'd love a gel manicure on Friday 🙏",
+      "m4": "I have 15:00 and 18:30 free. Which works better?",
+      "m5": "18:30 💕",
+      "m6": "Booked! See you on Friday 🌸"
+    }
   },
   "duration": {
     "minutes": "{m} min",
@@ -229,7 +214,7 @@
       },
       "cancel": {
         "q": "How do I cancel or reschedule?",
-        "a": "In “My bookings” on this site or via WhatsApp — please at least 3 hours in advance."
+        "a": "Message me on WhatsApp — please at least 3 hours in advance."
       },
       "payment": {
         "q": "How can I pay?",

@@ -134,6 +134,16 @@ function setupMotion() {
       },
     })
 
+    // Пока ленты нет на экране, она стоит: телефону незачем двигать фото, которых никто не видит
+    const setRunning = (on: boolean) => tweens.forEach(({ tween }) => on ? tween.resume() : tween.pause())
+    ScrollTrigger.create({
+      trigger: marquee.value,
+      start: 'top bottom',
+      end: 'bottom top',
+      onToggle: self => setRunning(self.isActive),
+    })
+    setRunning(ScrollTrigger.isInViewport(marquee.value!))
+
     // И ряды слегка расходятся в стороны при прокрутке
     rowsEl.forEach((row, i) => {
       gsap.fromTo(row, { x: i % 2 ? -28 : 28 }, {
@@ -160,7 +170,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="works" data-bg="#FBEEF3" class="section relative overflow-x-clip">
+  <section id="works" v-pause-offscreen data-bg="#FBEEF3" class="section relative overflow-x-clip">
     <!-- Размытые розовые блики медленно плавают за лентой -->
     <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       <span class="bokeh left-[6%] top-[38%] h-64 w-64 bg-rose/30" style="animation-duration: 26s" />
@@ -240,7 +250,7 @@ onBeforeUnmount(() => {
                   class="kenburns h-full w-full object-cover"
                   :style="{ animationDelay: `${-(i % 6) * 2}s` }"
                 >
-                <span class="pointer-events-none absolute bottom-3 left-3 translate-y-1 rounded-full bg-milk/90 px-3 py-1 text-xs font-semibold opacity-0 backdrop-blur transition duration-500 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+                <span class="pointer-events-none absolute bottom-3 left-3 translate-y-1 rounded-full bg-milk/90 px-3 py-1 text-xs font-semibold opacity-0 transition lg:backdrop-blur duration-500 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
                   {{ tagLabel(tile.item.tag) }}
                 </span>
               </button>
@@ -405,6 +415,19 @@ onBeforeUnmount(() => {
   }
   to {
     transform: scale(1.07) translate3d(-1.5%, -1.5%, 0);
+  }
+}
+
+/* На телефоне и планшете — только сама лента: без покачивания плиток, «наезда камеры» и размытых бликов.
+   Так ей хватает сил идти плавно */
+@media (max-width: 1023px) {
+  .tile-wrap,
+  .kenburns {
+    animation: none;
+  }
+
+  .bokeh {
+    display: none;
   }
 }
 

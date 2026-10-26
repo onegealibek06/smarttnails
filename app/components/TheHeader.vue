@@ -193,12 +193,19 @@ onBeforeUnmount(() => {
     -webkit-backdrop-filter 0.7s var(--ease-soft);
 }
 
+/* На телефоне — плотный фон без размытия: размывать всё под шапкой на каждом кадре прокрутки телефону тяжело */
 .header--solid {
   border-bottom-color: rgb(42 20 36 / 0.06);
-  background-color: rgb(255 255 255 / 0.82);
+  background-color: rgb(255 255 255 / 0.95);
   box-shadow: 0 12px 32px -24px rgb(42 20 36 / 0.35);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
+}
+
+@media (min-width: 1024px) {
+  .header--solid {
+    background-color: rgb(255 255 255 / 0.82);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    backdrop-filter: blur(18px) saturate(1.4);
+  }
 }
 
 /* Кнопка «Записаться»: тёмная капсула с розовым кружком-стрелкой */

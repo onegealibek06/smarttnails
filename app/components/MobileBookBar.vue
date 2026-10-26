@@ -37,7 +37,7 @@ onBeforeUnmount(() => {
   <Transition name="bar">
     <div
       v-if="visible"
-      class="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex gap-2 rounded-full bg-ink/95 p-1.5 shadow-[0_20px_50px_-15px_rgba(42,20,36,0.6)] backdrop-blur lg:hidden"
+      class="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex gap-2 rounded-full bg-ink/95 p-1.5 shadow-[0_20px_50px_-15px_rgba(42,20,36,0.6)] lg:hidden"
     >
       <a
         :href="whatsappLink(salon.whatsapp, t('booking.messageSite'))"

@@ -12,6 +12,8 @@ const root = ref<HTMLElement>()
 
 const SESSION_KEY = 'smarttnails:entered'
 const INTRO_MS = 1550
+// Столько ждёт запасная CSS-шторка (см. стили): дольше заставка сайт не держит
+const FALLBACK_MS = 3400
 const NAIL = 'M32 4c18 0 26 26 26 44v34c0 11.2-7.2 18-18 18H24c-10.8 0-18-6.8-18-18V48C6 30 14 4 32 4z'
 
 const word = 'smartt'.split('')
@@ -34,13 +36,15 @@ onMounted(() => {
   } catch {
     entered = false
   }
-  if (entered || !root.value) {
+  // Скрипты загрузились позже запасной CSS-шторки (медленный телефон): она уже уехала сама
+  if (entered || !root.value || performance.now() >= FALLBACK_MS) {
     finish()
     return
   }
 
   document.documentElement.style.overflow = 'hidden'
   const el = root.value
+  el.style.animation = 'none' // дальше шторку уводит GSAP
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     setTimeout(finish, 600)
@@ -110,6 +114,19 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* Запасной уход шторки на чистом CSS: если на медленном телефоне скрипты грузятся долго,
+   заставка всё равно уезжает через ~3,4 с и не держит сайт «зависшим» */
+.preloader {
+  animation: pl-fallback 0.75s 3.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes pl-fallback {
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
+
 .pl-glow {
   opacity: 0;
   animation: glow 1.2s ease-out forwards;

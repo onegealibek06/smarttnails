@@ -95,7 +95,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="booking" ref="root" data-bg="#F2EBF8" class="section relative overflow-x-clip">
+  <section id="booking" ref="root" v-pause-offscreen data-bg="#F2EBF8" class="section relative overflow-x-clip">
     <div class="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-10 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16 lg:px-10">
       <div>
         <SectionHeading v-reveal :eyebrow="t('booking.eyebrow')" title-key="booking.title" accent-key="booking.accent" />
@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
             v-for="(step, i) in ['s1', 's2', 's3']"
             :key="step"
             v-reveal="i * 0.08"
-            class="flex items-center gap-3 rounded-3xl bg-white/60 p-3 backdrop-blur sm:gap-4 sm:p-4"
+            class="flex items-center gap-3 rounded-3xl bg-white/60 p-3 sm:gap-4 sm:p-4 lg:backdrop-blur"
           >
             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-semibold text-milk sm:h-10 sm:w-10">{{ i + 1 }}</span>
             <span class="text-[15px] font-medium leading-snug sm:text-base">{{ t(`booking.steps.${step}`) }}</span>

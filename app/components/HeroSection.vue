@@ -11,6 +11,12 @@ const preloaderDone = useState('preloader:done', () => false)
 const slides = ['1203-52', '1205-26', '1205-38', '1207-58', '1211-40', '1213-23'].map(name => `/hero/${name}.webp`)
 const SLIDE_MS = 5500
 const current = ref(0)
+// Сначала грузятся только первый и следующий слайд, остальные — по мере показа:
+// иначе телефон при открытии сразу качает все шесть фото
+const loaded = ref(new Set([0, 1]))
+watch(current, (i) => {
+  loaded.value = new Set([...loaded.value, i, (i + 1) % slides.length])
+})
 
 const root = ref<HTMLElement>()
 // armed — элементы спрятаны и ждут вступительной анимации. Без JavaScript всё просто видно.
@@ -27,6 +33,9 @@ const sparkles = [
 
 let timer: ReturnType<typeof setInterval> | undefined
 let ctx: gsap.Context | undefined
+// Слайды листаются, только пока первый экран виден: прокрученный вниз слайдер не нагружает телефон
+let inView = true
+let viewObserver: IntersectionObserver | undefined
 
 function goTo(i: number) {
   current.value = i
@@ -36,7 +45,7 @@ function goTo(i: number) {
 function restartTimer() {
   clearInterval(timer)
   timer = setInterval(() => {
-    if (!document.hidden) current.value = (current.value + 1) % slides.length
+    if (inView && !document.hidden) current.value = (current.value + 1) % slides.length
   }, SLIDE_MS)
 }
 
@@ -58,6 +67,7 @@ function setupMotion() {
   const el = root.value
   if (!el) return
   gsap.registerPlugin(ScrollTrigger)
+  ctx ??= gsap.context(() => {}, el)
   ctx?.add(() => {
     // При прокрутке фото уезжает медленнее текста — глубина
     gsap.to('[data-media]', { yPercent: 10, ease: 'none', scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: true } })
@@ -87,11 +97,19 @@ function setupMotion() {
 onMounted(() => {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (reduced) return
-  armed.value = true
+  // Сайт ожил поздно (медленный телефон): первый экран уже давно виден — не прячем его ради вступления
+  const late = performance.now() > 3400
+  if (!late) armed.value = true
   restartTimer()
+  if (root.value) {
+    viewObserver = new IntersectionObserver(([entry]) => {
+      inView = entry!.isIntersecting
+    })
+    viewObserver.observe(root.value)
+  }
 
   const start = () => {
-    intro()
+    if (!late) intro()
     setupMotion()
   }
   if (preloaderDone.value) start()
@@ -106,12 +124,13 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   clearInterval(timer)
+  viewObserver?.disconnect()
   ctx?.revert()
 })
 </script>
 
 <template>
-  <section id="top" ref="root" data-bg="#F9E4EB" class="hero relative flex min-h-[100svh] flex-col overflow-hidden lg:block" :class="{ 'hero--armed': armed }">
+  <section id="top" ref="root" v-pause-offscreen data-bg="#F9E4EB" class="hero relative flex min-h-[100svh] flex-col overflow-hidden lg:block" :class="{ 'hero--armed': armed }">
     <div data-glow class="pointer-events-none absolute -left-48 top-[38%] h-[36rem] w-[36rem] rounded-full bg-rose/55 blur-[110px]" aria-hidden="true" />
     <div class="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-lilac/70 blur-[90px]" aria-hidden="true" />
 
@@ -122,7 +141,7 @@ onBeforeUnmount(() => {
           <img
             v-for="(src, i) in slides"
             :key="src"
-            :src="src"
+            :src="loaded.has(i) ? src : undefined"
             alt=""
             width="1600"
             height="1600"

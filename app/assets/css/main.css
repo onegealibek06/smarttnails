@@ -198,3 +198,9 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Анимации разделов, которых нет на экране, стоят на паузе (см. plugins/pause-offscreen.ts) */
+.is-offscreen,
+.is-offscreen * {
+  animation-play-state: paused !important;
+}

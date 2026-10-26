@@ -43,7 +43,7 @@ onBeforeUnmount(() => observer?.disconnect())
 </script>
 
 <template>
-  <footer data-bg="#F9E4EB" class="relative overflow-hidden pb-28 pt-16 sm:pt-20 lg:pb-8 lg:pt-24">
+  <footer v-pause-offscreen data-bg="#F9E4EB" class="relative overflow-hidden pb-28 pt-16 sm:pt-20 lg:pb-8 lg:pt-24">
     <svg class="sprig pointer-events-none absolute -left-6 top-24 h-56 w-32 -rotate-12 text-white/70" viewBox="0 0 120 200" aria-hidden="true">
       <path d="M62 198C58 150 60 96 72 8" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" />
       <ellipse cx="44" cy="160" rx="20" ry="7" transform="rotate(-30 44 160)" fill="currentColor" />

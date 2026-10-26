@@ -69,7 +69,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="about" ref="root" data-bg="#F7EFEA" class="about section relative overflow-x-clip" :class="{ armed, shown }">
+  <section id="about" ref="root" v-pause-offscreen data-bg="#F7EFEA" class="about section relative overflow-x-clip" :class="{ armed, shown }">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
       <div class="grid grid-cols-[minmax(0,1fr)] gap-3 sm:gap-4 lg:grid-cols-12">
         <!-- Заголовок и цитата -->
@@ -103,14 +103,14 @@ onBeforeUnmount(() => {
               class="photo-img absolute inset-0 h-[112%] w-full object-cover"
             >
           </div>
-          <span class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/80 py-1.5 pl-2.5 pr-3.5 text-xs font-semibold backdrop-blur">
+          <span class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 py-1.5 pl-2.5 pr-3.5 text-xs font-semibold lg:bg-white/80 lg:backdrop-blur">
             <span class="relative flex h-2 w-2">
               <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#25D366] opacity-70" />
               <span class="relative inline-flex h-2 w-2 rounded-full bg-[#25D366]" />
             </span>
             {{ t('about.status') }}
           </span>
-          <figcaption class="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-[24px] bg-white/70 px-5 py-4 backdrop-blur-xl">
+          <figcaption class="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-[24px] bg-white/85 px-5 py-4 lg:bg-white/70 lg:backdrop-blur-xl">
             <span>
               <span class="block text-lg font-semibold tracking-tight">{{ salon.owner }}</span>
               <span class="block text-xs text-ink-soft">{{ t('about.role') }}</span>
@@ -123,7 +123,7 @@ onBeforeUnmount(() => {
         </figure>
 
         <!-- История -->
-        <div class="tile rounded-[32px] bg-white/65 p-6 backdrop-blur sm:p-8 lg:col-span-7" style="--d: 2">
+        <div class="tile rounded-[32px] bg-white/65 p-6 sm:p-8 lg:backdrop-blur lg:col-span-7" style="--d: 2">
           <div class="leading-relaxed text-ink-soft sm:text-[1.05rem]">
             <p>{{ t('about.p1') }}</p>
             <div id="about-story" class="story-more" :class="{ 'story-more--open': storyOpen }">
@@ -149,11 +149,11 @@ onBeforeUnmount(() => {
 
         <!-- Цифры и Instagram -->
         <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:col-span-7 lg:grid-cols-[1fr_1fr_1.4fr]">
-          <div class="tile rounded-[28px] bg-white/65 p-5 backdrop-blur sm:p-6" style="--d: 3">
+          <div class="tile rounded-[28px] bg-white/65 p-5 sm:p-6 lg:backdrop-blur" style="--d: 3">
             <p class="text-[2.6rem] font-semibold leading-none tracking-[-0.05em] text-plum sm:text-5xl">2017</p>
             <p class="mt-2 text-xs leading-snug text-ink-soft sm:text-sm">{{ t('about.since') }}</p>
           </div>
-          <div class="tile rounded-[28px] bg-rose/45 p-5 backdrop-blur sm:p-6" style="--d: 4">
+          <div class="tile rounded-[28px] bg-rose/45 p-5 sm:p-6 lg:backdrop-blur" style="--d: 4">
             <p class="text-[2.6rem] font-semibold leading-none tracking-[-0.05em] tabular-nums sm:text-5xl">{{ years }}</p>
             <p class="mt-2 text-xs leading-snug text-ink sm:text-sm">{{ t('about.years') }}</p>
           </div>

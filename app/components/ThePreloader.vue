@@ -12,8 +12,6 @@ const root = ref<HTMLElement>()
 
 const SESSION_KEY = 'smarttnails:entered'
 const INTRO_MS = 1550
-// Столько ждёт запасная CSS-шторка (см. стили): дольше заставка сайт не держит
-const FALLBACK_MS = 3400
 const NAIL = 'M32 4c18 0 26 26 26 44v34c0 11.2-7.2 18-18 18H24c-10.8 0-18-6.8-18-18V48C6 30 14 4 32 4z'
 
 const word = 'smartt'.split('')
@@ -37,7 +35,7 @@ onMounted(() => {
     entered = false
   }
   // Скрипты загрузились позже запасной CSS-шторки (медленный телефон): она уже уехала сама
-  if (entered || !root.value || performance.now() >= FALLBACK_MS) {
+  if (entered || !root.value || preloaderGoneByCss()) {
     finish()
     return
   }
@@ -51,8 +49,10 @@ onMounted(() => {
     return
   }
 
-  // Если страница грузилась дольше заставки, логотип уже собран — сразу уводим шторку
-  const wait = Math.max(0, INTRO_MS - performance.now()) / 1000
+  // Логотип рисуется с первой отрисовки страницы, а не с начала загрузки: даём ему собраться целиком.
+  // Если скрипты пришли позже, логотип уже готов — шторка уходит сразу
+  const painted = firstPaintAt() || performance.now()
+  const wait = Math.max(0, painted + INTRO_MS - performance.now()) / 1000
   gsap.timeline({ delay: wait })
     .add(() => {
       done.value = true
@@ -115,7 +115,8 @@ onMounted(() => {
 
 <style scoped>
 /* Запасной уход шторки на чистом CSS: если на медленном телефоне скрипты грузятся долго,
-   заставка всё равно уезжает через ~3,4 с и не держит сайт «зависшим» */
+   заставка всё равно уезжает через ~3,4 с и не держит сайт «зависшим».
+   Задержка должна совпадать с PRELOADER_FALLBACK_MS в utils/preloader.ts */
 .preloader {
   animation: pl-fallback 0.75s 3.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }

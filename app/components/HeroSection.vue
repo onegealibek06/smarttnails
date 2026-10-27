@@ -63,6 +63,20 @@ function intro() {
   }, el)
 }
 
+// Заставка ещё на экране: её шторка сама открывает первый экран. Поэтому без «шторки в шторке»
+// (фото выезжает сбоку, пока заставка уезжает вверх) — только мягкое движение вверх вслед за ней
+function softIntro() {
+  const el = root.value
+  if (!el) return
+  ctx = gsap.context(() => {
+    gsap.timeline({ defaults: { ease: 'power3.out' } })
+      .fromTo('[data-media-inner]', { scale: 1.08 }, { scale: 1, duration: 1.8 }, 0)
+      .fromTo('.line-inner', { y: 36 }, { y: 0, duration: 1, stagger: 0.07 }, 0.1)
+      .fromTo('[data-fade]', { y: 22 }, { y: 0, duration: 0.9, stagger: 0.05 }, 0.2)
+      .fromTo('.sparkle-wrap', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'back.out(2.5)' }, 0.8)
+  }, el)
+}
+
 function setupMotion() {
   const el = root.value
   if (!el) return
@@ -98,8 +112,10 @@ onMounted(() => {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (reduced) return
   // Сайт ожил поздно (медленный телефон): первый экран уже давно виден — не прячем его ради вступления
-  const late = performance.now() > 3400
-  if (!late) armed.value = true
+  const late = preloaderGoneByCss()
+  // Заставка ещё не ушла — значит, первый экран откроет её шторка
+  const withCurtain = !late && !preloaderDone.value
+  if (!late && !withCurtain) armed.value = true
   restartTimer()
   if (root.value) {
     viewObserver = new IntersectionObserver(([entry]) => {
@@ -109,7 +125,8 @@ onMounted(() => {
   }
 
   const start = () => {
-    if (!late) intro()
+    if (withCurtain) softIntro()
+    else if (!late) intro()
     setupMotion()
   }
   if (preloaderDone.value) start()

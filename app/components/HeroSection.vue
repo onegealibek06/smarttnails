@@ -4,7 +4,6 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { salon } from '~/data/salon'
 
 const { t } = useI18n()
-const preloaderDone = useState('preloader:done', () => false)
 
 // Фото для первого экрана — те, что выбрала она (имя файла = время скриншота).
 // Сменяют друг друга с плавным наплывом; в активном — медленный «наезд камеры»
@@ -19,8 +18,6 @@ watch(current, (i) => {
 })
 
 const root = ref<HTMLElement>()
-// armed — элементы спрятаны и ждут вступительной анимации. Без JavaScript всё просто видно.
-const armed = ref(false)
 
 const sparkles = [
   { x: 24, y: 30, s: 16, d: 0 },
@@ -49,40 +46,12 @@ function restartTimer() {
   }, SLIDE_MS)
 }
 
-function intro() {
-  const el = root.value
-  if (!el) return
-  ctx = gsap.context(() => {
-    gsap.timeline({ defaults: { ease: 'power4.out' } })
-      .fromTo('[data-media]', { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'power4.inOut' }, 0)
-      .fromTo('[data-media-inner]', { scale: 1.25 }, { scale: 1, duration: 2.1, ease: 'power3.out' }, 0)
-      // y: 0 обязательно: иначе GSAP возьмёт сдвиг из CSS (translateY 115%) в пикселях, и строки останутся внизу
-      .fromTo('.line-inner', { yPercent: 115, y: 0 }, { yPercent: 0, y: 0, duration: 1.15, stagger: 0.12 }, 0.35)
-      .fromTo('[data-fade]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, stagger: 0.08 }, 0.75)
-      .fromTo('.sparkle-wrap', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(2.5)' }, 1.3)
-  }, el)
-}
-
-// Заставка ещё на экране: её шторка сама открывает первый экран. Поэтому без «шторки в шторке»
-// (фото выезжает сбоку, пока заставка уезжает вверх) — только мягкое движение вверх вслед за ней
-function softIntro() {
-  const el = root.value
-  if (!el) return
-  ctx = gsap.context(() => {
-    gsap.timeline({ defaults: { ease: 'power3.out' } })
-      .fromTo('[data-media-inner]', { scale: 1.08 }, { scale: 1, duration: 1.8 }, 0)
-      .fromTo('.line-inner', { y: 36 }, { y: 0, duration: 1, stagger: 0.07 }, 0.1)
-      .fromTo('[data-fade]', { y: 22 }, { y: 0, duration: 0.9, stagger: 0.05 }, 0.2)
-      .fromTo('.sparkle-wrap', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'back.out(2.5)' }, 0.8)
-  }, el)
-}
-
 function setupMotion() {
   const el = root.value
   if (!el) return
   gsap.registerPlugin(ScrollTrigger)
-  ctx ??= gsap.context(() => {}, el)
-  ctx?.add(() => {
+  ctx = gsap.context(() => {}, el)
+  ctx.add(() => {
     // При прокрутке фото уезжает медленнее текста — глубина
     gsap.to('[data-media]', { yPercent: 10, ease: 'none', scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: true } })
     gsap.to('[data-content]', { y: -60, opacity: 0.25, ease: 'none', scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: true } })
@@ -108,14 +77,10 @@ function setupMotion() {
   ctx?.add(() => () => el.removeEventListener('pointermove', onMove))
 }
 
+// Появление первого экрана сделано на CSS (см. стили) и не ждёт скриптов. Здесь — только
+// смена слайдов и параллакс при прокрутке и движении мыши
 onMounted(() => {
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reduced) return
-  // Сайт ожил поздно (медленный телефон): первый экран уже давно виден — не прячем его ради вступления
-  const late = preloaderGoneByCss()
-  // Заставка ещё не ушла — значит, первый экран откроет её шторка
-  const withCurtain = !late && !preloaderDone.value
-  if (!late && !withCurtain) armed.value = true
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   restartTimer()
   if (root.value) {
     viewObserver = new IntersectionObserver(([entry]) => {
@@ -123,20 +88,7 @@ onMounted(() => {
     })
     viewObserver.observe(root.value)
   }
-
-  const start = () => {
-    if (withCurtain) softIntro()
-    else if (!late) intro()
-    setupMotion()
-  }
-  if (preloaderDone.value) start()
-  else {
-    const stop = watch(preloaderDone, (done) => {
-      if (!done) return
-      stop()
-      start()
-    })
-  }
+  setupMotion()
 })
 
 onBeforeUnmount(() => {
@@ -147,7 +99,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="top" ref="root" v-pause-offscreen data-bg="#F9E4EB" class="hero relative flex min-h-[100svh] flex-col overflow-hidden lg:block" :class="{ 'hero--armed': armed }">
+  <section id="top" ref="root" v-pause-offscreen data-bg="#F9E4EB" class="hero relative flex min-h-[100svh] flex-col overflow-hidden lg:block">
     <div data-glow class="pointer-events-none absolute -left-48 top-[38%] h-[36rem] w-[36rem] rounded-full bg-rose/55 blur-[110px]" aria-hidden="true" />
     <div class="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-lilac/70 blur-[90px]" aria-hidden="true" />
 
@@ -196,15 +148,15 @@ onBeforeUnmount(() => {
         </p>
 
         <h1 class="mt-5 text-[clamp(2.7rem,6.2vw,5.4rem)] font-semibold leading-[1] tracking-[-0.045em]">
-          <span class="line"><span class="line-inner">{{ t('hero.line1') }}</span></span>
-          <span class="line"><span class="line-inner">{{ t('hero.line2') }}</span></span>
-          <span class="line line--accent"><span class="line-inner accent text-[1.15em]">{{ t('hero.line3') }}</span></span>
+          <span class="line"><span class="line-inner" style="--i: 0">{{ t('hero.line1') }}</span></span>
+          <span class="line"><span class="line-inner" style="--i: 1">{{ t('hero.line2') }}</span></span>
+          <span class="line line--accent"><span class="line-inner accent text-[1.15em]" style="--i: 2">{{ t('hero.line3') }}</span></span>
         </h1>
 
-        <p data-fade class="mt-6 text-lg font-semibold tracking-tight">@ {{ salon.brand }} {{ salon.signature }}.</p>
-        <p data-fade class="mt-2 max-w-md leading-relaxed text-ink-soft">{{ t('hero.subtitle') }}</p>
+        <p data-fade class="mt-6 text-lg font-semibold tracking-tight" style="--d: 1">@ {{ salon.brand }} {{ salon.signature }}.</p>
+        <p data-fade class="mt-2 max-w-md leading-relaxed text-ink-soft" style="--d: 2">{{ t('hero.subtitle') }}</p>
 
-        <div data-fade class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+        <div data-fade class="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4" style="--d: 3">
           <a href="#booking" class="hero-btn group">
             {{ t('cta.bookOnline') }}
             <svg class="transition-transform duration-300 group-hover:translate-x-1" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -215,7 +167,7 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Переключатель фото с полоской, которая заполняется до смены -->
-        <div data-fade class="mt-12 flex items-center gap-4">
+        <div data-fade class="mt-12 flex items-center gap-4" style="--d: 4">
           <span class="text-xs font-semibold tabular-nums text-ink/50">0{{ current + 1 }} / 0{{ slides.length }}</span>
           <div class="flex gap-1.5">
             <button
@@ -228,7 +180,7 @@ onBeforeUnmount(() => {
               @click="goTo(i)"
             >
               <span class="relative block h-[3px] w-10 overflow-hidden rounded-full bg-ink/15">
-                <span v-if="current === i" :key="`bar-${current}`" class="progress absolute inset-y-0 left-0 rounded-full bg-rose-deep" :style="{ animationDuration: `${SLIDE_MS}ms` }" />
+                <span v-if="current === i" :key="`bar-${current}`" class="progress absolute inset-0 rounded-full bg-rose-deep" :style="{ animationDuration: `${SLIDE_MS}ms` }" />
               </span>
             </button>
           </div>
@@ -336,28 +288,79 @@ onBeforeUnmount(() => {
   transform: translateY(-2px);
 }
 
+/* Полоска растёт через scaleX, а не ширину: так телефону не нужно пересчитывать раскладку */
 .progress {
-  width: 0;
+  transform: scaleX(0);
+  transform-origin: left;
   animation: fill linear forwards;
 }
 
 @keyframes fill {
   to {
-    width: 100%;
+    transform: scaleX(1);
   }
 }
 
-/* До вступительной анимации: фото закрыто, строки опущены, остальное прозрачно */
-.hero--armed [data-media] {
-  clip-path: inset(0% 0% 0% 100%);
+/* Появление первого экрана — чистый CSS, только прозрачность и сдвиги. Стартует с первой отрисовки
+   и не ждёт скриптов: при первом заходе — когда растворяется заставка (~1,1 с), при повторном
+   (класс pl-seen ставит скрипт в <head>) — почти сразу */
+.hero {
+  --enter: 1.05s;
 }
 
-.hero--armed .line-inner {
-  transform: translateY(115%);
+:global(.pl-seen) .hero {
+  --enter: 0.05s;
 }
 
-.hero--armed [data-fade],
-.hero--armed .sparkle-wrap {
-  opacity: 0;
+.hero [data-media-inner] {
+  animation: hero-settle 1.6s var(--enter) var(--ease-soft) both;
+}
+
+.hero .line-inner {
+  animation: hero-rise 0.9s calc(var(--enter) + 0.08s + var(--i, 0) * 0.08s) var(--ease-soft) both;
+}
+
+.hero [data-fade] {
+  animation: hero-fade 0.8s calc(var(--enter) + 0.2s + var(--d, 0) * 0.06s) var(--ease-soft) both;
+}
+
+.hero .sparkle-wrap {
+  animation: hero-pop 0.5s calc(var(--enter) + 0.6s) var(--ease-soft) both;
+}
+
+@keyframes hero-settle {
+  from {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(45%);
+  }
+}
+
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+@keyframes hero-pop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero [data-media-inner],
+  .hero .line-inner,
+  .hero [data-fade],
+  .hero .sparkle-wrap {
+    animation: none;
+  }
 }
 </style>
